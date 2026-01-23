@@ -1,4 +1,4 @@
-This is a comprehensive **Architectural, Functional, Technical, and Security Review** of the **Pakana Node Appliance (Phase 5/6)** based on the provided codebase.
+This is a comprehensive **Architectural, Functional, Technical, and Security Review** of the **Pakana Node Appliance (Community Edition - Phase 5/6)** based on the provided codebase.
 
 ### **1. Executive Summary**
 

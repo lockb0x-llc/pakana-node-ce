@@ -8,7 +8,7 @@ This content is structured to be dropped directly into your repository.
 
 **File:** `README.md` (or `docs/MASTER_PLAN.md`)
 
-# Project Pakana: The Sovereign Node Appliance
+# Project Pakana: The Sovereign Node Appliance (Community Edition)
 
 ### "A Virtual Appliance for 21st Century Commerce"
 
@@ -18,13 +18,28 @@ Project Pakana is a decentralized infrastructure initiative designed to bridge t
 
 By combining the speed of **YottaDB** (Hierarchical NoSQL), the safety of **Rust**, and the ubiquity of the **Stellar Network**, the Pakana Node creates a **"Meta-Network"**—a private, high-performance logical layer on top of the public blockchain that enforces **UCC Article 12** compliance for digital assets.
 
-## 2. Core Value Proposition
+## 2. Community Edition vs. Pro Edition
+
+The **Pakana Node Community Edition (CE)** is our open-source foundation, providing the essential infrastructure for sovereign blockchain integration.
+
+| Feature | Community Edition (CE) | Pro Edition |
+| :--- | :--- | :--- |
+| **Ledger Ingestion** | Full Stellar Testnet/Mainnet | High-Priority Archive Access |
+| **Database** | YottaDB (Single Instance) | YottaDB (Replicated/High-Availability) |
+| **Core Processors** | Go (Ingest) / Rust (Validate) | Multi-Node Validation Consensus |
+| **API** | REST (api-report) | gRPC / Streaming Webhooks |
+| **Compliance** | Lockb0x Protocol v0.0.3 | Automated Legal Filing Integration |
+| **UI** | Basic Admin Dashboard | Enterprise Multi-Tenant Dashboard |
+| **Security** | API Key / SSH Tunnel | RBAC / HSM Integration |
+| **Support** | Community / Documentation | 24/7 SLA / Managed Hosting |
+
+## 3. Core Value Proposition
 
 * **Sovereignty:** You own your data. The node runs on your infrastructure (Azure VM), not a black-box SaaS.
 * **Compliance:** Built-in implementation of the **Lockb0x Protocol** (IETF Draft) ensures every transaction creates a legally defensible "Controllable Electronic Record" (CER).
 * **Performance:** Leveraging YottaDB's in-memory speeds allows for real-time validation of complex construction and development workflows that would choke a standard SQL database.
 
-## 3. The "Meta-Network" Architecture
+## 4. The "Meta-Network" Architecture
 
 The Pakana Node does not fork the Stellar Network. Instead, it acts as a **Sovereign Indexer** and **Validation Anchor**.
 

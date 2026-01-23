@@ -1,4 +1,4 @@
-# Deploying the Pakana Node Appliance
+# Deploying the Pakana Node Appliance (Community Edition)
 
 This guide covers the manual deployment of the Pakana Node on a standard Ubuntu 24.04 environment. This "Appliance-First" approach ensures maximum reliability and control over your sovereign ledger.
 
