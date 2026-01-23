@@ -1,0 +1,48 @@
+name: Deploy Pakana Node
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Release Package
+        run: |
+          # Create a tarball excluding unnecessary environment-specific files
+          tar -czf pakana-node.tar.gz \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.agent' \
+            --exclude='*.dat' \
+            --exclude='*.gld' \
+            --exclude='*.mjl' \
+            .
+
+      - name: Copy Release Package to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "pakana-node.tar.gz,deploy.sh"
+          target: "~/"
+
+      - name: Execute Remote Deployment Script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/pakana-node
+            mv ~/deploy.sh ~/pakana-node/deploy.sh
+            chmod +x ~/pakana-node/deploy.sh
+            ~/pakana-node/deploy.sh

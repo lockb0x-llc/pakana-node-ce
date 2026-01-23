@@ -1,0 +1,51 @@
+# Go
+api-go/go.sum
+api-go/*.exe
+api-go/*.exe~
+api-go/*.dll
+api-go/*.so
+api-go/*.dylib
+api-go/api-go
+
+# Rust
+core-rust/target/
+core-rust/Cargo.lock
+**/*.rs.bk
+
+# YottaDB
+*.dat
+*.gld
+*.mjl
+*.o
+
+# Docker
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+*.tar.gz
+
+# IDE
+.vscode/
+.idea/
+.agent/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+
+# Dashboard
+api-report/dashboard/node_modules/
+api-report/dashboard/dist/
+api-report/dashboard/.env
+api-report/dashboard/.env.*
+!api-report/dashboard/.env.example
+
+# Internal Documentation
+docs/internal/

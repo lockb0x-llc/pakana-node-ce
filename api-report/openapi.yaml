@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: Pakana Reporting API
+  description: API for querying sovereign ledger state from the Pakana Node (Community Edition).
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Local API v1
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Account:
+      type: object
+      properties:
+        account_id:
+          type: string
+        balance:
+          type: string
+          description: Native balance in stroops
+        balance_xlm:
+          type: string
+          description: Native balance in XLM
+        seq_num:
+          type: integer
+          format: int64
+        last_modified:
+          type: integer
+          format: int64
+        trustlines:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trustline'
+    Trustline:
+      type: object
+      properties:
+        asset:
+          type: string
+        balance:
+          type: string
+        limit:
+          type: string
+    Ledger:
+      type: object
+      properties:
+        sequence:
+          type: integer
+          format: int64
+        closed_at:
+          type: string
+          format: date-time
+        tx_count:
+          type: integer
+    Transaction:
+      type: object
+      properties:
+        hash:
+          type: string
+        ledger_seq:
+          type: integer
+          format: int64
+        xdr:
+          type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+  /accounts/{id}:
+    get:
+      summary: Get Account Details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account details including trustlines
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /accounts/{id}/balance:
+    get:
+      summary: Get Account Balance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account native balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: string
+                  balance:
+                    type: string
+                  balance_xlm:
+                    type: string
+  /accounts/{id}/trustlines:
+    get:
+      summary: Get Account Trustlines
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of trustlines for the account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: string
+                  trustlines:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Trustline'
+  /ledgers/latest:
+    get:
+      summary: Get Latest Ledger
+      responses:
+        '200':
+          description: Details of the latest ingested ledger
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ledger'
+  /ledgers/{seq}:
+    get:
+      summary: Get Ledger by Sequence
+      parameters:
+        - name: seq
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Ledger details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ledger'
+  /transactions/{hash}:
+    get:
+      summary: Get Transaction by Hash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'

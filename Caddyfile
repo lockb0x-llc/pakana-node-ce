@@ -1,0 +1,14 @@
+{
+    email {$LETSENCRYPT_EMAIL}
+}
+
+{$DOMAIN_NAME} {
+    reverse_proxy api-report:8080
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+    }
+}
