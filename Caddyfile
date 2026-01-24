@@ -1,5 +1,5 @@
 {
-    email {$LETSENCRYPT_EMAIL}
+    email {$ADMIN_EMAIL}
 }
 
 {$DOMAIN_NAME} {

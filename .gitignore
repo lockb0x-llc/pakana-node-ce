@@ -47,5 +47,6 @@ api-report/dashboard/.env
 api-report/dashboard/.env.*
 !api-report/dashboard/.env.example
 
-# Internal Documentation
-docs/internal/
+# MCP
+mcp-bridge/
+.mcp-cache/
