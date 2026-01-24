@@ -62,6 +62,12 @@ The deployment process uses **Azure Bicep** and `cloud-init` to provision a hard
    docker compose up -d
    ```
 
+6. **Initialize SQL Schema (First Run Only)**
+   This step creates the SQL tables in YottaDB so they are accessible via DBeaver/Octo.
+   ```bash
+   cat init.sql | docker exec -i pakana-api-go /bin/bash -c "export ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld; export ydb_routines=\"/data/r2.03_x86_64/o/utf8 /data/r2.03_x86_64/r /data/r2.03_x86_64/o /opt/yottadb/current/plugin/o/utf8 /opt/yottadb/current/plugin/r /opt/yottadb/current/plugin/o /opt/yottadb/current/libyottadbutil.so /opt/yottadb/current/libyottadb.so /opt/yottadb/current\"; /opt/yottadb/current/plugin/octo/bin/octo"
+   ```
+
 ## Configuration Details
 
 The deployment process automatically injects your configuration into `/etc/environment`. The Pakana containers read these global variables:

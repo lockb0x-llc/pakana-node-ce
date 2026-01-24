@@ -116,15 +116,13 @@ The reporting service serves an interactive Swagger UI for quick experimentation
 
 ## 8. Deployment Instructions
 
-```bash
-# Deploy to VM
-scp pakana-node.tar.gz <vm-user>@<vm-ip>:~/
-ssh <vm-user>@<vm-ip> "tar -xzf pakana-node.tar.gz && cd pakana-node && docker compose up -d"
+For full deployment instructions, including setting up the Azure VM and automated CI/CD pipeline, please refer to the **[Azure Appliance Deployment Guide](docs/README_AZURE.md)**.
 
-# Initialize SQL Schema (First run only)
-# Initialize SQL Schema (First run only)
-cat init.sql | docker exec -i pakana-api-go /bin/bash -c "export ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld; export ydb_routines=\"/data/r2.03_x86_64/o/utf8 /data/r2.03_x86_64/r /data/r2.03_x86_64/o /opt/yottadb/current/plugin/o/utf8 /opt/yottadb/current/plugin/r /opt/yottadb/current/plugin/o /opt/yottadb/current/libyottadbutil.so /opt/yottadb/current/libyottadb.so /opt/yottadb/current\"; /opt/yottadb/current/plugin/octo/bin/octo"
-```
+**Quick Summary:**
+1.  **Clone**: `git clone ...`
+2.  **Setup**: `./setup.sh` (installs dependencies)
+3.  **Run**: `docker compose up -d`
+4.  **Initialize**: Run the SQL schema initialization command (see guide).
 
 ## 9. CI/CD & Automated Deployment
 
@@ -133,7 +131,7 @@ The Pakana Node features a bulletproof CI/CD pipeline using GitHub Actions for a
 ### GitHub Secrets Setup
 To enable automated deployments, add the following Secrets to your GitHub repository (`Settings > Secrets and variables > Actions`):
 
-1.  `VM_IP`: `4.246.101.185`
+1.  `VM_IP`: `###.###.###.###`
 2.  `VM_USER`: `stevenadmin`
 3.  `SSH_PRIVATE_KEY`: The contents of your `pakana-node.pem` file.
 
@@ -256,7 +254,7 @@ The Pakana Node exposes a PostgreSQL-compatible interface via **YottaDB Rocto**.
    - **User**: `stevenadmin`
 3. **SSH Tab**:
    - Check **Use SSH Tunnel**.
-   - **Host/IP**: `4.246.101.185`
+   - **Host/IP**: `###.###.###.###`
    - **Port**: `22`
    - **User**: `stevenadmin`
    - **Authentication**: Select your `.pem` key file.
