@@ -55,6 +55,9 @@ The core data flow, known as the "Steel Thread," ensures end-to-end integrity fr
 
 ### VM Tuning (`vm_tuning.sh`)
 The appliance requires kernel parameter adjustments to support YottaDB's large shared memory segments.
+
+> **Note**: These steps are automatically handled by `deploy_pakana.sh`.
+
 -   **Semaphores**: `kernel.sem="250 32000 100 128"` is applied to allow for sufficient IPC identifiers.
 -   **Mount Options**: The `/data` volume is mounted with `noatime` to reduce write wear and latency on the SSD.
 

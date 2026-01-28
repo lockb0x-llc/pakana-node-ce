@@ -29,7 +29,8 @@ All endpoints require the `X-API-Key` header (except `/health`).
 
 Interactive Swagger-based documentation is available directly on the node:
 
-- **Swagger UI**: `http://localhost:8080/docs`
+- **Swagger UI (Internal)**: `http://localhost:8080/docs`
+- **Swagger UI (Public)**: `https://build.lockb0x.dev/docs`
 - **OpenAPI Spec**: `http://localhost:8080/openapi.yaml`
 
 ## Build and Deployment

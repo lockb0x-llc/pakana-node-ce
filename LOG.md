@@ -13,6 +13,12 @@ Pakana is a private ledger system built on YottaDB with Stellar protocol integra
 
 ## Development Timeline
 
+### 2026-01-28 - Release v1.0.0 (Community Edition)
+- **Deployment Verified**: Storage optimization confirmed active on `pakana-ce-9775a8ae`. Docker uses `/data/docker` (NVMe).
+- **Service Status**: All services (Go, Rust, YottaDB, Report) operational on the new storage layout.
+- **Race Condition Fixed**: `deploy_pakana.sh` patched to prevent `mkfs` race conditions.
+- **Documentation**: All documentation aligned with Release v1.0.0 status. External access verified via `build.lockb0x.dev`.
+
 ### 2026-01-27 - Repository Cleanup & Normalization
 - **Legacy Cruft Removal**: Deleted `DEPLOYMENT.md`, `setup.sh`, `db-init.sh`, `verify-remediation.sh`, `deploy.sh`.
 - **Logic Consolidation**: `deploy_pakana.sh` is now the unified entrypoint for Azure deployment and VM bootstrapping (including YottaDB initialization).
@@ -102,7 +108,7 @@ cd core-rust && cargo run
 ## Issues and Resolutions
 (To be documented as development progresses)
 
-## Next Steps
+## Possible Next Steps
 - Implement full Stellar ledger ingestion
 - Add transaction processing logic
 - Implement account balance calculations

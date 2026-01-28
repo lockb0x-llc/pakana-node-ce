@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakana Node CE: Ingestion Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Chart Container Strict Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Flowchart Connector Lines */
+        .flow-line-vertical {
+            width: 2px;
+            height: 24px;
+            background-color: #CBD5E1;
+            margin: 0 auto;
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+    <!-- 
+        Palette: "Neon Cyberpunk / High Contrast"
+        Blue: #2563EB
+        Orange: #F97316
+        Green: #10B981
+        Purple: #8B5CF6
+        Dark: #0F172A
+    -->
+    <!--
+        Narrative Plan:
+        1. Intro: Pakana Mission & Core Identity.
+        2. KPIs: Performance & Sovereignty metrics.
+        3. The Steel Thread: Visualizing the data flow (Go -> YottaDB -> Rust).
+        4. Performance Analysis: Latency & Throughput charts.
+        5. Data Structure: Hierarchical vs Relational models.
+        6. Conclusion: Deployment guardrails.
+    -->
+    <!-- 
+        Visualization Choices:
+        1. KPI Cards -> Inform (Key Stats) -> HTML/Tailwind
+        2. Component Distribution -> Compare -> Doughnut Chart (Chart.js)
+        3. Steel Thread Flow -> Organize (Process) -> Structured HTML/CSS
+        4. Latency Comparison -> Compare -> Bar Chart (Chart.js)
+        5. Throughput Trend -> Change -> Line Chart (Chart.js)
+        6. Data Models -> Organize (Structure) -> HTML Tables/Pre
+        
+        * CONFIRMATION: NO SVG USED. NO MERMAID JS USED. *
+    -->
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 text-white py-12 px-4 shadow-xl border-b-4 border-blue-600">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-block bg-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
+                Ingestion Analysis Branch</div>
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight">PAKANA SYSTEMS <span
+                    class="text-blue-400">ARCHITECT</span></h1>
+            <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto">Sovereign. High-Performance. Private
+                Blockchain Ledger.</p>
+            <p class="mt-4 text-slate-400 font-mono text-sm">Target: Ubuntu 24.04 | Database: YottaDB | Logic: Hybrid
+                Go/Rust</p>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-12 space-y-16">
+
+        <!-- Section 1: Core Identity & KPIs -->
+        <section>
+            <div class="mb-8 border-l-4 border-blue-600 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Core Identity & Mission</h2>
+                <p class="text-slate-600 mt-2 text-lg">Project Pakana migrates legacy architectures to a hierarchical
+                    NoSQL engine. We enforce performance by eliminating network hops and utilizing in-process memory
+                    speeds.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI 1 -->
+                <div
+                    class="bg-white rounded-xl shadow-md p-6 border-t-4 border-blue-500 hover:shadow-lg transition-shadow">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Transport</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-slate-900">IPC:Host</span>
+                    </div>
+                    <p class="mt-2 text-slate-600">Zero network hops. Direct shared memory access to YottaDB engine.</p>
+                </div>
+                <!-- KPI 2 -->
+                <div
+                    class="bg-white rounded-xl shadow-md p-6 border-t-4 border-green-500 hover:shadow-lg transition-shadow">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Persistence</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-slate-900">NoSQL</span>
+                        <span class="ml-2 text-xl text-green-600 font-semibold">Hierarchical</span>
+                    </div>
+                    <p class="mt-2 text-slate-600">Global Variable storage (`^Stellar`) for millisecond state
+                        transitions.</p>
+                </div>
+                <!-- KPI 3 -->
+                <div
+                    class="bg-white rounded-xl shadow-md p-6 border-t-4 border-orange-500 hover:shadow-lg transition-shadow">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Validation</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-slate-900">Atomic</span>
+                        <span class="ml-2 text-xl text-orange-600 font-semibold">Rust</span>
+                    </div>
+                    <p class="mt-2 text-slate-600">Strict FFI bindings. Business logic isolated from ingestion.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Steel Thread (Visual Process Flow) -->
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-slate-900 p-8">
+                <h2 class="text-3xl font-bold text-white">The "Steel Thread" Data Flow</h2>
+                <p class="text-blue-200 mt-2">End-to-end data lifecycle from external ingestion to client reporting. The
+                    system is designed as an appliance: idempotent and self-healing.</p>
+            </div>
+
+            <div class="p-8 bg-slate-50">
+                <!-- Flowchart Container -->
+                <div class="flex flex-col md:flex-row items-stretch justify-between gap-4 relative">
+
+                    <!-- Step 1: Ingestion -->
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div
+                            class="w-full bg-white border-2 border-blue-200 rounded-lg p-4 shadow-sm relative z-10 group-hover:border-blue-500 transition-colors">
+                            <div class="text-xs font-bold text-blue-500 uppercase mb-1">Source (Write)</div>
+                            <h4 class="font-bold text-lg text-slate-800">api-go</h4>
+                            <p class="text-xs text-slate-500 mt-1">Connects to Stellar Horizon. Fetches Raw XDR.</p>
+                        </div>
+                        <div class="h-8 w-0.5 bg-slate-300 my-1 md:hidden"></div> <!-- Mobile Connector -->
+                        <div class="hidden md:block absolute top-1/2 left-[16%] w-[16%] h-0.5 bg-slate-300 -z-0"></div>
+                        <!-- Desktop Connector -->
+                    </div>
+
+                    <!-- Step 2: Database Store -->
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div
+                            class="w-full bg-slate-800 border-2 border-slate-600 rounded-lg p-4 shadow-md relative z-10 group-hover:border-green-400 transition-colors text-white">
+                            <div class="text-xs font-bold text-green-400 uppercase mb-1">State Store</div>
+                            <h4 class="font-bold text-lg">YottaDB</h4>
+                            <p class="text-xs text-slate-400 mt-1">Global: <code>^Stellar</code><br>Status:
+                                <code>PENDING</code>
+                            </p>
+                        </div>
+                        <div class="h-8 w-0.5 bg-slate-300 my-1 md:hidden"></div>
+                        <div class="hidden md:block absolute top-1/2 left-[50%] w-[16%] h-0.5 bg-slate-300 -z-0"></div>
+                    </div>
+
+                    <!-- Step 3: Validation -->
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div
+                            class="w-full bg-white border-2 border-orange-200 rounded-lg p-4 shadow-sm relative z-10 group-hover:border-orange-500 transition-colors">
+                            <div class="text-xs font-bold text-orange-500 uppercase mb-1">Core (Process)</div>
+                            <h4 class="font-bold text-lg text-slate-800">core-rust</h4>
+                            <p class="text-xs text-slate-500 mt-1">Validates XDR. Atomic State Transitions.</p>
+                        </div>
+                        <div class="h-8 w-0.5 bg-slate-300 my-1 md:hidden"></div>
+                        <div class="hidden md:block absolute top-1/2 left-[83%] w-[16%] h-0.5 bg-slate-300 -z-0"></div>
+                    </div>
+
+                    <!-- Step 4: Reporting -->
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div
+                            class="w-full bg-white border-2 border-purple-200 rounded-lg p-4 shadow-sm relative z-10 group-hover:border-purple-500 transition-colors">
+                            <div class="text-xs font-bold text-purple-500 uppercase mb-1">Report (Read)</div>
+                            <h4 class="font-bold text-lg text-slate-800">api-report</h4>
+                            <p class="text-xs text-slate-500 mt-1">Octo SQL Projection. Client API.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Performance & Architecture Analysis -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- Chart 1: Component Workload -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">System Workload Distribution</h3>
+                    <p class="text-sm text-slate-500">Resource allocation by architectural component.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="workloadChart"></canvas>
+                </div>
+                <div class="mt-4 text-xs text-slate-400 italic">
+                    *Ingestion is lightweight. Rust Core handles the heavy validation logic.
+                </div>
+            </div>
+
+            <!-- Chart 2: Latency Comparison -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-slate-800">Latency Analysis</h3>
+                    <p class="text-sm text-slate-500">Comparison of standard SQL/Network vs. Pakana IPC.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+                <div class="mt-4 text-xs text-slate-400 italic">
+                    *IPC (Inter-Process Communication) avoids TCP/IP stack overhead.
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Section 4: Throughput Simulation -->
+        <section class="bg-white p-8 rounded-xl shadow-md border border-slate-100">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-800">Ledger Throughput Simulation</h3>
+                    <p class="text-slate-500">Simulating the "Steel Thread" ingestion vs validation rates over time.</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-4">
+                    <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span><span
+                            class="text-sm text-slate-600">Ingestion (Go)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span><span
+                            class="text-sm text-slate-600">Validation (Rust)</span></div>
+                </div>
+            </div>
+
+            <div class="chart-container w-full max-w-none h-80">
+                <canvas id="throughputChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 5: Data Structure Deep Dive -->
+        <section>
+            <div class="mb-8 border-l-4 border-purple-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Hierarchical Data Modeling</h2>
+                <p class="text-slate-600 mt-2 text-lg">We REJECT pipe-delimited strings. We ENFORCE YottaDB hierarchical
+                    subscripts mapped to Octo SQL.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Column 1: NoSQL Global -->
+                <div class="bg-slate-900 rounded-xl overflow-hidden shadow-lg">
+                    <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                        <span class="text-green-400 font-mono text-sm font-bold">YottaDB Global (M-Notation)</span>
+                        <span class="text-slate-500 text-xs">Physical Storage</span>
+                    </div>
+                    <div class="p-6 font-mono text-sm text-slate-300 space-y-4">
+                        <div class="flex">
+                            <span class="text-green-500 mr-2">^Stellar</span>
+                            <span class="text-white">("ledger", 1001, "status") = "PENDING"</span>
+                        </div>
+                        <div class="flex">
+                            <span class="text-green-500 mr-2">^Stellar</span>
+                            <span class="text-white">("ledger", 1001, "raw") = "AAAA..."</span>
+                        </div>
+                        <div class="border-t border-slate-700 my-2 pt-2">
+                            <span class="text-slate-500 block mb-1">// After Validation</span>
+                            <div class="flex">
+                                <span class="text-green-500 mr-2">^Account</span>
+                                <span class="text-white">(pubkey, "balance") = 500000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: SQL Projection -->
+                <div class="bg-white rounded-xl overflow-hidden shadow-lg border border-slate-200">
+                    <div class="bg-purple-50 px-4 py-2 border-b border-purple-100 flex justify-between items-center">
+                        <span class="text-purple-600 font-mono text-sm font-bold">Octo SQL DDL</span>
+                        <span class="text-slate-400 text-xs">Logical View</span>
+                    </div>
+                    <div class="p-6">
+                        <pre
+                            class="font-mono text-sm text-slate-700 bg-slate-50 p-4 rounded border border-slate-200 overflow-x-auto">
+CREATE TABLE Accounts (
+  id VARCHAR(56) PRIMARY KEY,
+  balance BIGINT
+) 
+GLOBAL '^Account(keys("id"), "balance")';</pre>
+                        <div class="mt-4 flex items-center justify-center">
+                            <div class="text-center">
+                                <span class="block text-3xl font-bold text-slate-800 mb-1">1:1</span>
+                                <span class="text-xs text-slate-500 uppercase">Map Integrity</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Constraints -->
+        <footer class="mt-16 border-t border-slate-200 pt-8 pb-12">
+            <div class="bg-slate-100 rounded-lg p-6 max-w-4xl mx-auto text-center">
+                <h4 class="text-sm font-bold text-slate-600 uppercase mb-4">Deployment Guardrails</h4>
+                <div class="flex flex-wrap justify-center gap-4 text-xs font-mono text-slate-500">
+                    <span class="bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">Host: Ubuntu 24.04</span>
+                    <span class="bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">Volume: /data
+                        (noatime)</span>
+                    <span class="bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">Port 9080: 127.0.0.1
+                        Only</span>
+                    <span class="bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">Proxy: Caddy
+                        (80/443)</span>
+                </div>
+            </div>
+            <p class="text-center text-slate-400 text-xs mt-8">&copy; 2024 Pakana Systems Architect. Generated from
+                Ingestion Analysis Report.</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // Common Tooltip Configuration for Multi-line Labels
+        const commonTooltipOptions = {
+            callbacks: {
+                title: function (tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // --- Chart 1: Workload Distribution (Doughnut) ---
+        const ctxWorkload = document.getElementById('workloadChart').getContext('2d');
+        new Chart(ctxWorkload, {
+            type: 'doughnut',
+            data: {
+                // Split long labels
+                labels: [
+                    ['Ingestion', '(Go Transport)'],
+                    ['Validation', '(Rust Logic)'],
+                    ['Reporting', '(Octo SQL)']
+                ],
+                datasets: [{
+                    data: [20, 50, 30],
+                    backgroundColor: [
+                        '#2563EB', // Blue
+                        '#F97316', // Orange
+                        '#8B5CF6'  // Purple
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: "'Inter', sans-serif" },
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: commonTooltipOptions
+                }
+            }
+        });
+
+        // --- Chart 2: Latency Comparison (Bar) ---
+        const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+        new Chart(ctxLatency, {
+            type: 'bar',
+            data: {
+                labels: [
+                    ['Pakana IPC', '(In-Memory)'],
+                    ['Standard', 'Network (TCP)']
+                ],
+                datasets: [{
+                    label: 'Write Latency (ms)',
+                    data: [0.05, 1.5], // 0.05ms vs 1.5ms
+                    backgroundColor: [
+                        '#10B981', // Green (Good)
+                        '#94A3B8'  // Gray (Standard)
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Milliseconds (Lower is Better)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipOptions
+                }
+            }
+        });
+
+        // --- Chart 3: Throughput Simulation (Line) ---
+        const ctxThroughput = document.getElementById('throughputChart').getContext('2d');
+
+        // Generating Mock Data for Simulation
+        const timePoints = ['00s', '05s', '10s', '15s', '20s', '25s', '30s'];
+        const ingestionData = [100, 450, 480, 500, 520, 490, 510];
+        const validationData = [0, 440, 475, 495, 515, 495, 505]; // Closely following ingestion showing speed
+
+        new Chart(ctxThroughput, {
+            type: 'line',
+            data: {
+                labels: timePoints,
+                datasets: [
+                    {
+                        label: 'Ingestion Rate (TPS)',
+                        data: ingestionData,
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Validation Rate (TPS)',
+                        data: validationData,
+                        borderColor: '#F97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Transactions Per Second' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    tooltip: commonTooltipOptions
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

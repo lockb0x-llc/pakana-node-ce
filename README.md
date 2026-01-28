@@ -1,4 +1,4 @@
-# Project Pakana: The Sovereign Node Appliance (Community Edition)
+# Project Pakana: The Sovereign Node Appliance (Release v1.0.0 Community Edition)
 
 ### "A Virtual Appliance for 21st Century Commerce"
 
@@ -92,7 +92,7 @@ The Pakana Node does not fork the Stellar Network. Instead, it acts as a **Sover
   - `ydb_tmp=/data/tmp`: Shared temporary directory for lock files, ensuring all containers see the same database locks.
 - **Seeding**: The `db-init` container automatically seeds the database files and creates `/data/tmp` on first run.
 
-## 6. Development Status (Phase 7 - Community Edition Release Candidate) 🚀
+## 6. Development Status (Release v1.0.0 - Stable) 🚀
 
 - [x] **YottaDB/Octo Deployment**: Functional with persistent storage on **r2.03**.
 - [x] **Stellar Ingestion**: `api-go` streams ledgers from Stellar Testnet and persists them to `^Stellar`.
@@ -112,8 +112,9 @@ The Pakana Node does not fork the Stellar Network. Instead, it acts as a **Sover
 
 The reporting service serves an interactive Swagger UI for quick experimentation and exploration:
 
-- **Swagger UI**: `http://<node-ip>:8080/docs`
-- **OpenAPI Spec**: `http://<node-ip>:8080/openapi.yaml`
+- **Swagger UI (Internal)**: `http://<node-ip>:8080/docs`
+- **Swagger UI (Public)**: `https://build.lockb0x.dev/docs`
+- **OpenAPI Spec**: `https://build.lockb0x.dev/openapi.yaml`
 
 ## 8. Deployment Instructions
 
@@ -136,7 +137,10 @@ For full details, see the prompts within the deployment script.
     This script will:
     - Provision the Azure resources (Resource Group, VM, Network).
     - Configure the OS (Kernel tuning, Docker installation).
+    - Provision High-Performance NVMe Storage (`/data`).
     - Bootstrap the Pakana software (Clone repo on VM, Init DB, Start Docker).
+    
+    **Default Domain**: `build.lockb0x.dev` (SSL Auto-Provisioned)
 
 3.  **Connect**:
     Use the SSH command provided at the end of the script output to access your node.
