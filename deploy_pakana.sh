@@ -234,6 +234,7 @@ BOOTSTRAP_CMD=$(cat <<EOF
 #!/bin/bash
 set -e
 [ -f /etc/environment ] && source /etc/environment
+export HOME=/root
 
 # Bicep sets up /opt/pakana for the systemd service
 TARGET_DIR="/opt/pakana"
@@ -242,12 +243,18 @@ mkdir -p \$TARGET_DIR
 if [ ! -d "\$TARGET_DIR/.git" ]; then
     echo "Cloning repository to \$TARGET_DIR..."
     git clone https://github.com/lockb0x-llc/pakana-node-ce.git \$TARGET_DIR
-    # Ensure admin user owns it (if we want them to edit it), though systemd runs as root.
-    # Let's give ownership to the admin user for SSH access convenience
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    
+    # Configure git safety for the repo
     git config --global --add safe.directory \$TARGET_DIR
+    
+    # Ensure admin user owns it for SSH access convenience
+    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
 else
-    echo "Repository already exists."
+    echo "Repository already exists. Pulling latest changes..."
+    cd \$TARGET_DIR
+    git config --global --add safe.directory \$TARGET_DIR
+    git pull
+    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
 fi
 
 cd \$TARGET_DIR
