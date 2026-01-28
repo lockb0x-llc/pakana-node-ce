@@ -107,7 +107,7 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     environment:
-      - DOMAIN_NAME=${DOMAIN_NAME:-${PAKANA_DOMAIN:-pakana.lockb0x.io}}
+      - DOMAIN_NAME=${DOMAIN_NAME:-${PAKANA_DOMAIN:-build.lockb0x.dev}}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-${PAKANA_EMAIL:-steven@thefirm.codes}}
     depends_on:
       - api-report

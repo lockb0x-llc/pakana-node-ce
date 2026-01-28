@@ -1,0 +1,6 @@
+
+=== Pakana CE Node Deployment Status ===
+Dashboard is UP and accessible via HTTPS.
+URL: https://pakana-ce-9424e978.westus2.cloudapp.azure.com/
+API Status: Connected (Ingesting Ledgers)
+SSL: Valid (Let's Encrypt)
