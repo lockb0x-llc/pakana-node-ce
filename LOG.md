@@ -13,6 +13,12 @@ Pakana is a private ledger system built on YottaDB with Stellar protocol integra
 
 ## Development Timeline
 
+### 2026-01-27 - Repository Cleanup & Normalization
+- **Legacy Cruft Removal**: Deleted `DEPLOYMENT.md`, `setup.sh`, `db-init.sh`, `verify-remediation.sh`, `deploy.sh`.
+- **Logic Consolidation**: `deploy_pakana.sh` is now the unified entrypoint for Azure deployment and VM bootstrapping (including YottaDB initialization).
+- **Hardware Alignment**: Confirmed `deploy/main.bicep` uses `Standard_F2s_v2` Compute Optimized SKU and `PremiumV2_LRS` storage.
+- **Documentation**: Updated README to reflect "Appliance-First" single-command deployment.
+
 - **Interactive Documentation**: Integrated OpenAPI 3.0 and Swagger UI at `/docs` for developer onboarding.
 - **Azure Integration Plan**: Formulated a comprehensive plan to integrate Azure Bicep deployment (F2s_v2) into the CE repository, ensuring a one-command "Appliance" experience.
 - **MCP Configuration**: Initialized configuration for Azure, Docker, PostgreSQL (Octo), and GitHub MCP servers to enhance agent autonomy.

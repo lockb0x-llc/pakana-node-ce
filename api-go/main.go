@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/stellar/go/clients/horizonclient"
@@ -27,7 +29,15 @@ func main() {
 	conn.Node("^Ledger", "timestamp").Set(timestampStr)
 
 	// 2. Stellar Ingestion Logic
-	client := horizonclient.DefaultTestNetClient
+	horizonURL := os.Getenv("HORIZON_URL")
+	if horizonURL == "" {
+		horizonURL = "https://horizon-testnet.stellar.org"
+	}
+	client := &horizonclient.Client{
+		HorizonURL: horizonURL,
+		HTTP:       &http.Client{Timeout: 30 * time.Second},
+	}
+	log.Printf("Horizon client initialized with URL: %s", horizonURL)
 
 	// Start Internal API Server for On-Demand Hydration
 	StartInternalServer(conn, client)

@@ -1,46 +1,53 @@
 # Requirements & Technical Specifications
 
-## 1. Functional Requirements
+## 1. Hardware Profile (Azure F-Series)
 
-* **R1. Ingestion:** The system MUST ingest transactions from the Stellar Network (Testnet/Mainnet) via Horizon, filtering specifically for "Pakana-tagged" accounts (identified by `home_domain` or specific Asset issuers).
-* **R2. Lockb0x Compliance:** The system MUST implement the Lockb0x Protocol v0.0.3 to generate, validate, and store **Codex Entries** (CERs).
-* *Constraint:* Must support `ni:///sha-256` integrity proofs.
+The Community Edition is optimized for the **Azure Compute Optimized** family.
 
+*   **SKU**: `Standard_F2s_v2` (2 vCPUs, 4GB RAM) or higher.
+    *   *Why*: YottaDB and XDR validation are CPU-intensive. High clock speeds benefit throughput.
+*   **Storage**: **Premium SSD v2** (LRS).
+    *   *Requirement*: Hosted at `/data` with `noatime`.
+    *   *IOPS*: Minimum 3000 IOPS for ledger saturation.
+*   **OS**: Ubuntu 24.04 LTS (Noble Numbat).
 
-* **R3. Atomic Validation:** The system MUST validate that every "Payment" (Disbursement) is cryptographically linked to a "Deliverable" (Waiver/Invoice) via a Memo Hash.
-* **R4. Hybrid Storage:** The system MUST store "State" (Balances, Relations) in YottaDB and "Artifacts" (PDFs, JSON Blobs) in a local, cryptographically addressed file store (`/data/storage/blobs`).
+## 2. Functional Requirements
 
-## 2. Non-Functional Requirements
+### R1. Network Sentinel
+The system MUST be able to keep up with the Stellar Testnet ledger close rate (approx. every 5 seconds).
+*   **Metric**: Ingestion latency < 2s.
 
-* **N1. Performance:** API read latency < 10ms for 95th percentile. YottaDB writes MUST use `ipc: host` for direct memory access.
-* **N2. Sovereignty:** The appliance MUST be deployable via a single `docker compose up` command on a fresh Ubuntu 24.04 VM.
-* **N3. Security:** No database ports exposed publicly. TLS via Caddy reverse proxy. API Access via `X-API-Key`.
+### R2. Data Sovereignty
+The system MUST store all cryptographic state locally.
+*   **Implementation**: All ledger data (`^Stellar`) and account state (`^Account`) resides on the specific `/data` volume. No external database dependencies.
 
-## 3. Data Model Specification (YottaDB Globals)
+### R3. API Security
+The system MUST protect its read-only API.
+*   **Method**: `X-API-Key` header authentication.
+*   **Encryption**: TLS 1.3 via Caddy reverse proxy.
 
-The system transitions from Relational (SQL) thinking to Hierarchical (M-style) thinking.
+## 3. Data Model (YottaDB Hierarchical)
 
-### **The Codex (Lockb0x Store)**
+The system uses a "Tree" structure instead of Tables.
 
+### A. The Ledger Store
 ```m
-; Root Record (Canonical JSON)
-^Codex("uuid-v4") = "{ ... json content ... }"
+; Ledger Header
+^Stellar("ledger", {sequence}) = "close_time|hash|prev_hash"
 
-; Indices for high-speed lookup
-^CodexIdx("artifact", "workorder-789", "uuid-v4") = 1
-^CodexIdx("integrity", "ni:///sha-256;...", "uuid-v4") = 1
-
+; Transactions
+^Stellar("ledger", {sequence}, "tx", {index}) = "base64_envelope_xdr"
+^Stellar("ledger", {sequence}, "tx", {index}, "hash") = "hex_hash"
 ```
 
-### **The Business State (Hybrid Migration Target)**
-
+### B. The Account State
 ```m
-; Organization Root
-^Pakana("Org", {OrgId}) = "Name|OwnerDID|Status"
-^Pakana("Org", {OrgId}, "Stellar", "M") = "M-Account-Address"
+; Native Balance (XLM in stroops)
+^Account({account_id}, "balance") = 10000000000
 
-; Project & WorkOrder Hierarchy
-^Pakana("Org", {OrgId}, "Proj", {ProjId}) = "Title|ManagerDID"
-^Pakana("Org", {OrgId}, "Proj", {ProjId}, "WO", {WorkOrderId}) = "Funding|Status"
+; Trustlines (Asset Balances)
+^Account({account_id}, "trustlines", {asset_code}, {issuer_id}, "balance") = 500
 
+; Metadata
+^Account({account_id}, "seq_num") = 123456789
 ```
