@@ -78,7 +78,8 @@ The Pakana Node does not fork the Stellar Network. Instead, it acts as a **Sover
 
 ### Azure VM Environment
 - **OS**: Ubuntu 24.04 LTS
-- **Hardware**: Azure VM with Premium SSD v2.
+- **Hardware**: Azure `Standard_F2s_v2` (Compute Optimized).
+- **Storage**: Premium SSD v2 (LRS) for maximum IOPS/Throughput.
 - **Tuning**: 
   - Kernel semaphores optimized: `kernel.sem=250 32000 100 128`.
   - Storage mounted with `noatime` for maximum performance.
@@ -116,13 +117,29 @@ The reporting service serves an interactive Swagger UI for quick experimentation
 
 ## 8. Deployment Instructions
 
-For full deployment instructions, including setting up the Azure VM and automated CI/CD pipeline, please refer to the **[Azure Appliance Deployment Guide](docs/README_AZURE.md)**.
+For full details, see the prompts within the deployment script.
 
-**Quick Summary:**
-1.  **Clone**: `git clone ...`
-2.  **Setup**: `./setup.sh` (installs dependencies)
-3.  **Run**: `docker compose up -d`
-4.  **Initialize**: Run the SQL schema initialization command (see guide).
+**Prerequisites**: [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and logged in.
+
+**Single-Step Appliance Deployment:**
+
+1.  **Clone this repository** (Locally):
+    ```bash
+    git clone https://github.com/lockb0x-llc/pakana-node-ce.git
+    cd pakana-node-ce
+    ```
+
+2.  **Deploy**:
+    ```bash
+    bash ./deploy_pakana.sh
+    ```
+    This script will:
+    - Provision the Azure resources (Resource Group, VM, Network).
+    - Configure the OS (Kernel tuning, Docker installation).
+    - Bootstrap the Pakana software (Clone repo on VM, Init DB, Start Docker).
+
+3.  **Connect**:
+    Use the SSH command provided at the end of the script output to access your node.
 
 ## 9. CI/CD & Automated Deployment
 
@@ -168,11 +185,12 @@ To enable automated deployments, add the following Secrets to your GitHub reposi
 ├── core-rust/          # Rust processor service
 ├── api-report/         # Reporting API service
 │   └── dashboard/      # React frontend (Vite)
-├── docs/               # Documentation (AGENTS.md, WALKTHROUGH.md)
+├── deploy/             # Infrastructure (Bicep)
+├── docs/               # Documentation
 ├── init.sql            # Octo SQL DDL
 ├── docker-compose.yml  # Multi-service orchestration
-├── vm_tuning.sh        # Host optimization script
-└── setup.sh            # One-command deployment script
+├── vm_tuning.sh        # Host optimization script (called by deploy)
+└── deploy_pakana.sh    # Unified Appliance Deployment Entrypoint
 ```
 
 ## 12. Test Results

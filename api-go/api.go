@@ -52,14 +52,19 @@ func StartInternalServer(conn *yottadb.Conn, client *horizonclient.Client) {
 
 		log.Printf("Received hydration request for account: %s", req.AccountID)
 
+		// Debug logging for request tracing
+		fmt.Printf("[DEBUG] Processing hydration for: %s\n", req.AccountID)
+
 		// 1. Fetch from Horizon
 		accountReq := horizonclient.AccountRequest{AccountID: req.AccountID}
 		hAccount, err := client.AccountDetail(accountReq)
 		if err != nil {
 			log.Printf("Error fetching account %s from Horizon: %v", req.AccountID, err)
+			fmt.Printf("[DEBUG] Horizon fetch failed for %s: %v\n", req.AccountID, err)
 			http.Error(w, fmt.Sprintf("Horizon error: %v", err), http.StatusBadGateway)
 			return
 		}
+		fmt.Printf("[DEBUG] Successfully fetched account %s from Horizon (Seq: %d)\n", req.AccountID, hAccount.Sequence)
 
 		// 2. Persist to YottaDB (Hydrate)
 		// Use a transaction for atomicity ideally, but simplistic set for now is fine for "Community"
@@ -98,6 +103,12 @@ func StartInternalServer(conn *yottadb.Conn, client *horizonclient.Client) {
 		// Verify
 		vSeq := conn.Node("^Account", req.AccountID, "seq_num").Get("0")
 		log.Printf("Hydration Verify: Account %s Seq is %s", req.AccountID, vSeq)
+
+		if vSeq != fmt.Sprintf("%d", hAccount.Sequence) {
+			log.Printf("CRITICAL ERROR: Sequence mismatch after write! Expected %d, Got %s", hAccount.Sequence, vSeq)
+		} else {
+			fmt.Printf("[DEBUG] YottaDB write verification successful for %s\n", req.AccountID)
+		}
 
 		log.Printf("Hydrated account %s (Seq: %s)", req.AccountID, hAccount.Sequence)
 
@@ -161,8 +172,6 @@ func backfillHistory(conn *yottadb.Conn, client *horizonclient.Client, accountID
 			// Wait, main.go uses a counter. Here we are inserting potentially out of order or duplicating index 0.
 			// Ideally we should query the ledger node to find the next index.
 			// But for "Community" cache, maybe we just store passing "999" or hash-based?
-			// The schema is ^Stellar("ledger", seq, "tx", idx).
-			// If we use "idx" collisions, we overwrite.
 			// Better to use a hash-based index or just increment.
 			// Let's use a high number + loop to find generic slot?
 			// Or just simple scan for next slot.

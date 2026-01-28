@@ -1,84 +1,60 @@
-@description('Username for the Virtual Machine.')
-param adminUsername string
+/*
+  Project Pakana: Infrastructure as Code
+  Resource: Compute-Optimized CE Node (F-Series)
+  Target: pakana.lockb0x.io | Region: westus2
+*/
 
-@description('SSH Key or password for the Virtual Machine. SSH key is recommended.')
+@description('Deployment region. westus2 is required for PremiumV2 availability.')
+param location string = 'westus2'
+
+@description('VM Hostname.')
+param vmName string = 'pakana-ce-node'
+
+@description('Admin account.')
+param adminUsername string = 'pakanaadmin'
+
 @secure()
+@description('SSH Key or Password.')
 param adminPasswordOrKey string
 
-@description('The domain name for the node (e.g., node.example.com)')
-param domainName string
+@description('Public DNS label. Must be globally unique and alphanumeric.')
+param dnsLabel string = 'pakana-ce-${uniqueString(resourceGroup().id)}' 
 
-@description('The email address for Let\'s Encrypt notifications')
-param adminEmail string
-
-@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
-param dnsLabelPrefix string = toLower('${domainName}-${uniqueString(resourceGroup().id)}')
-
-@description('The Ubuntu version for the VM. This will pick the latest 24.04 LTS version.')
-param ubuntuOSVersion string = '24_04-lts'
-
-@description('Location for all resources.')
-param location string = resourceGroup().location
-
-@description('The size of the VM')
-param vmSize string = 'Standard_F2s_v2'
-
-@description('Name of the virtual machine')
-param vmName string = 'pakana-node-vm'
-
-@description('Security Type of the Virtual Machine.')
-@allowed([
-  'Standard'
-  'TrustedLaunch'
-])
-param securityType string = 'TrustedLaunch'
-
-var publicIpName = '${vmName}-pip'
-var networkSecurityGroupName = '${vmName}-nsg'
-var vnetName = '${vmName}-vnet'
-var subnetName = 'default'
 var networkInterfaceName = '${vmName}-nic'
-var osDiskType = 'Premium_LRS'
-var subnetAddressPrefix = '10.1.0.0/24'
-var addressPrefix = '10.1.0.0/16'
-var linuxConfiguration = {
-  disablePasswordAuthentication: true
-  ssh: {
-    publicKeys: [
-      {
-        path: '/home/${adminUsername}/.ssh/authorized_keys'
-        keyData: adminPasswordOrKey
-      }
-    ]
-  }
-}
+var nsgName = '${vmName}-nsg'
+var publicIpAddressName = '${vmName}-pip'
 
-resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
-  name: networkInterfaceName
+// 1. Networking: Static IP
+resource publicIP 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+  name: publicIpAddressName
   location: location
+  zones: ['1']
+  sku: { name: 'Standard' }
   properties: {
-    ipConfigurations: [
-      {
-        name: 'ipconfig1'
-        properties: {
-          subnet: {
-            id: subnet.id
-          }
-          privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIp.id
-          }
-        }
-      }
-    ]
-    networkSecurityGroup: {
-      id: nsg.id
+    publicIPAllocationMethod: 'Static'
+    dnsSettings: {
+      domainNameLabel: dnsLabel
     }
   }
 }
 
-resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-  name: networkSecurityGroupName
+// 2. Storage: Premium SSD v2 (Critical for YottaDB Global IO)
+resource dataDisk 'Microsoft.Compute/disks@2023-04-02' = {
+  name: '${vmName}-data-disk'
+  location: location
+  zones: ['1']
+  sku: { name: 'PremiumV2_LRS' }
+  properties: {
+    creationData: { createOption: 'Empty' }
+    diskSizeGB: 256
+    diskIOPSReadWrite: 3000
+    diskMBpsReadWrite: 125
+  }
+}
+
+// 3. Security: Caddy Ingress (80/443)
+resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+  name: nsgName
   location: location
   properties: {
     securityRules: [
@@ -86,133 +62,142 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
         name: 'SSH'
         properties: {
           priority: 1000
-          protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
+          destinationPortRange: '22'
+          protocol: 'Tcp'
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '22'
         }
       }
       {
         name: 'HTTP'
         properties: {
           priority: 1010
-          protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
+          destinationPortRange: '80'
+          protocol: 'Tcp'
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '80'
         }
       }
       {
         name: 'HTTPS'
         properties: {
           priority: 1020
-          protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
+          destinationPortRange: '443'
+          protocol: 'Tcp'
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '443'
         }
       }
     ]
   }
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-  name: vnetName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        addressPrefix
-      ]
-    }
-    subnets: [
-      {
-        name: subnetName
-        properties: {
-          addressPrefix: subnetAddressPrefix
-        }
-      }
-    ]
-  }
-}
-
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' existing = {
-  parent: vnet
-  name: subnetName
-}
-
-resource publicIp 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: publicIpName
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
-    dnsSettings: {
-      domainNameLabel: dnsLabelPrefix
-    }
-  }
-}
-
-resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+// 4. Compute: F2s_v2 optimized for Rust Validator clock speed
+resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
   name: vmName
   location: location
+  zones: ['1']
   properties: {
-    hardwareProfile: {
-      vmSize: vmSize
-    }
+    hardwareProfile: { vmSize: 'Standard_F2s_v2' }
     osProfile: {
       computerName: vmName
       adminUsername: adminUsername
-      customData: base64(format('#cloud-config\npackage_upgrade: true\npackages:\n  - docker.io\n  - docker-compose\nwrite_files:\n  - path: /etc/environment\n    content: |\n      DOMAIN_NAME={0}\n      ADMIN_EMAIL={1}\n    append: true\nruncmd:\n  - usermod -aG docker {2}\n  - echo "kernel.sem=250 32000 100 128" >> /etc/sysctl.conf\n  - sysctl -p\n', domainName, adminEmail, adminUsername))
-      linuxConfiguration: linuxConfiguration
-    }
-    storageProfile: {
-      osDisk: {
-        createOption: 'FromImage'
-        managedDisk: {
-          storageAccountType: osDiskType
+      linuxConfiguration: {
+        disablePasswordAuthentication: true
+        ssh: {
+          publicKeys: [
+            {
+              path: '/home/${adminUsername}/.ssh/authorized_keys'
+              keyData: adminPasswordOrKey
+            }
+          ]
         }
       }
+      customData: base64(format('''
+#cloud-config
+runcmd:
+  - mkdir -p /data
+  - mkfs.ext4 /dev/sdc
+  - mount -o noatime /dev/sdc /data
+  - echo "/dev/sdc /data ext4 defaults,noatime 0 0" >> /etc/fstab
+  - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+  - usermod -aG docker {0}
+  - git clone https://github.com/lockb0x-llc/pakana-node-ce /opt/pakana
+  - cd /opt/pakana && bash ./deploy_pakana.sh
+''', adminUsername))
+    }
+    storageProfile: {
       imageReference: {
         publisher: 'Canonical'
-        offer: '0001-com-ubuntu-server-jammy'
-        sku: ubuntuOSVersion
+        offer: 'ubuntu-24_04-lts'
+        sku: 'server'
         version: 'latest'
       }
-    }
-    networkProfile: {
-      networkInterfaces: [
+      osDisk: {
+        createOption: 'FromImage'
+        diskSizeGB: 64
+        managedDisk: { storageAccountType: 'Premium_LRS' }
+      }
+      dataDisks: [
         {
-          id: nic.id
+          lun: 0
+          name: '${vmName}-data-disk'
+          createOption: 'Attach'
+          managedDisk: {
+            id: dataDisk.id
+          }
         }
       ]
     }
-    diagnosticsProfile: {
-      bootDiagnostics: {
-        enabled: true
-      }
-    }
-    securityProfile: {
-      securityType: securityType
-      uefiSettings: {
-        secureBootEnabled: true
-        vTpmEnabled: true
-      }
+    networkProfile: {
+      networkInterfaces: [ { id: nic.id } ]
     }
   }
 }
 
-output hostname string = publicIp.properties.dnsSettings.fqdn
-output sshCommand string = 'ssh ${adminUsername}@${publicIp.properties.dnsSettings.fqdn}'
-output publicIP string = publicIp.properties.ipAddress
+resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
+  name: networkInterfaceName
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          publicIPAddress: { id: publicIP.id }
+          subnet: { id: resourceId('Microsoft.Network/virtualNetworks/subnets', '${vmName}-vnet', 'default') }
+        }
+      }
+    ]
+  }
+  dependsOn: [ vnet ]
+}
+
+resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
+  name: '${vmName}-vnet'
+  location: location
+  properties: {
+    addressSpace: { addressPrefixes: [ '10.0.0.0/16' ] }
+    subnets: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '10.0.0.0/24'
+          networkSecurityGroup: { id: nsg.id }
+        }
+      }
+    ]
+  }
+}
+
+output fqdn string = publicIP.properties.dnsSettings.fqdn
+
+output publicIP string = publicIP.properties.ipAddress

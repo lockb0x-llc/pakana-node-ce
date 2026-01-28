@@ -1,15 +1,4 @@
 services:
-  db-init:
-    image: yottadb/yottadb-base:latest-master
-    container_name: pakana-db-init
-    hostname: pakana-node
-    volumes:
-      - yottadb-data:/data
-      - ./db-init.sh:/init.sh:ro
-    ipc: host
-    entrypoint: /bin/bash
-    command: /init.sh
-
   yottadb:
     image: yottadb/yottadb-base:latest-master
     container_name: pakana-yottadb
@@ -18,9 +7,6 @@ services:
       - "127.0.0.1:9080:9080" # YottaDB port
     volumes:
       - yottadb-data:/data
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
     environment:
       - ydb_dir=/data
       - ydb_rel=r2.03_x86_64
