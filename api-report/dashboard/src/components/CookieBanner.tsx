@@ -30,7 +30,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept, onDecline 
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 p-4 z-50 animate-fade-in-up">
+        <div className="fixed bottom-0 left-0 right-0 p-4 z-50 animate-fade-in">
             <div className="max-w-7xl mx-auto glass-card border border-emerald-500/30 rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                 <div className="space-y-1">
                     <h3 className="text-white font-medium text-sm">Analytics Consent</h3>
