@@ -59,9 +59,9 @@ The Pakana Node is currently in a functional "Steel Thread" state (Phase 2), suc
 
 ## 5. Deployment Checklist (Updated)
 
-- [ ] VM Provisioned (Ubuntu 24.04, Premium SSD v2)
-- [ ] Docker Installed & User added to `docker` group
-- [ ] Kernel Parameters Tuned (`vm_tuning.sh`)
-- [ ] `.env` file created with strong `API_KEY` and Valid `LETSENCRYPT_EMAIL`
-- [ ] Ports 80/443 Open in NSG (Azure)
-- [ ] Port 9080/1337 BLOCKED in NSG (Azure) - Accessible only via Localhost/SSH Tunnel
+- [x] VM Provisioned (Ubuntu 24.04, Premium SSD v2)
+- [x] Docker Installed & User added to `docker` group
+- [x] Kernel Parameters Tuned (`vm_tuning.sh`)
+- [x] `.env` file created with strong `API_KEY` and Valid `LETSENCRYPT_EMAIL`
+- [x] Ports 80/443 Open in NSG (Azure)
+- [x] Port 9080/1337 BLOCKED in NSG (Azure) - Accessible only via Localhost/SSH Tunnel

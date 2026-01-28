@@ -142,8 +142,15 @@ For full details, see the prompts within the deployment script.
     
     **Default Domain**: `build.lockb0x.dev` (SSL Auto-Provisioned)
 
-3.  **Connect**:
+4.  **Connect**:
     Use the SSH command provided at the end of the script output to access your node.
+    ```bash
+    ssh pakanaadmin@<vm-hostname>
+    ```
+
+5.  **Access Dashboard**:
+    Open `https://<your-domain>` in your browser.
+    Default: `https://build.lockb0x.dev` (or your configured domain).
 
 ## 9. CI/CD & Automated Deployment
 
@@ -213,7 +220,8 @@ To enable automated deployments, add the following Secrets to your GitHub reposi
 - [x] Implement trustline tracking for non-XLM assets (LBX ready).
 - [x] Implement Reporting API with authentication.
 - [x] Issue TOKE token on Stellar network.
-- [x] Configure SSL/TLS with Let's Encrypt.
+- [x] Configure SSL/TLS with Let's Encrypt (Caddy).
+- [x] Deploy Reference Appliance (Azure + Docker).
 
 ## 14. Reporting API Usage
 
