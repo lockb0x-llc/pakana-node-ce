@@ -255,7 +255,12 @@ else
     git config --global --add safe.directory \$TARGET_DIR
     git pull
     chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
 fi
+
+echo "Configuring environment..."
+echo "DOMAIN_NAME=$DOMAIN_NAME" > \$TARGET_DIR/.env
+echo "ADMIN_EMAIL=$ADMIN_EMAIL" >> \$TARGET_DIR/.env
 
 cd \$TARGET_DIR
 
