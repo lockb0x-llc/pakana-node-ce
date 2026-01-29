@@ -258,41 +258,43 @@ else
 fi
 
 cd \$TARGET_DIR
-echo "Starting YottaDB container..."
-docker compose up -d yottadb
-sleep 10
 
-echo "Initializing Database..."
-# Run init logic inside the container
-docker exec pakana-yottadb bash -c '
-source /opt/yottadb/current/ydb_env_set
-if [ ! -f /data/r2.03_x86_64/g/yottadb.dat ]; then
-    echo "Creating new global directory and database..."
-    mkdir -p /data/r2.03_x86_64/g /data/r2.03_x86_64/r /data/r2.03_x86_64/o /data/r2.03_x86_64/o/utf8
-    export ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld
-    export ydb_rel=r2.03_x86_64
+echo "Initializing YottaDB..."
+# Use ephemeral container to initialize the DB files securely
+docker run --rm -v pakana_yottadb-data:/data \
+  -e ydb_dist=/opt/yottadb/current \
+  -e ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld \
+  -e ydb_rel=r2.03_x86_64 \
+  yottadb/yottadb-base:latest-master bash -c '
     export ydb_dist=/opt/yottadb/current
-    
-    # Generate GDE
-    \$ydb_dist/mumps -run GDE <<GDEEOF
+    if [ ! -f /data/r2.03_x86_64/g/yottadb.dat ]; then
+        echo "Creating new global directory and database..."
+        mkdir -p /data/r2.03_x86_64/g /data/r2.03_x86_64/r /data/r2.03_x86_64/o /data/r2.03_x86_64/o/utf8
+        
+        # Generate GDE
+        \$ydb_dist/mumps -run GDE <<GDEEOF
 change -region DEFAULT -key_size=256 -record_size=16384
 change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat
 exit
 GDEEOF
-    
-    # Create DB
-    \$ydb_dist/mupip create
-    \$ydb_dist/mupip set -journal="enable,on,before" -region DEFAULT
-    chmod 666 /data/r2.03_x86_64/g/yottadb.gld
-    chmod 666 /data/r2.03_x86_64/g/yottadb.dat
-    echo "Database initialized."
-else
-    echo "Database already exists."
-fi
+        
+        # Create DB
+        \$ydb_dist/mupip create
+        \$ydb_dist/mupip set -journal="enable,on,before" -region DEFAULT
+        
+        # Ensure permissions for container user
+        chmod -R 777 /data/r2.03_x86_64
+        echo "Database initialized."
+    else
+        echo "Database already exists."
+    fi
 '
 
-echo "Starting remaining services..."
-docker compose up -d
+echo "Starting all services..."
+# Ensure permissions are correct before starting
+docker run --rm -v pakana_yottadb-data:/data alpine sh -c "chmod -R 777 /data"
+
+docker compose up -d --build
 
 echo "Bootstrap complete."
 EOF

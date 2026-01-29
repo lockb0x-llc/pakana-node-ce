@@ -7,7 +7,7 @@ We have transitioned to a unified deployment model using `deploy_pakana.sh`.
 1.  **Azure Provisioning**: Deploys `deploy/main.bicep` to create the Resource Group, VNet, Public IP, and VM.
 2.  **VM Tuning**: Executes `vm_tuning.sh` via Azure RunCommand to set kernel semaphores and mount options.
 3.  **Bootstrap**:
-    *   Clones the repository to `/home/pakanaadmin`.
+    *   Clones the repository to `/opt/pakana` (system-wide location).
     *   Starts the `yottadb` container.
     *   Executes the M code to initialize the `yottadb.gld` (Global Directory) and `yottadb.dat` (Database File).
     *   Starts `api-go`, `core-rust`, `api-report`, and `reverse-proxy`.
@@ -31,9 +31,16 @@ docker compose logs -f api-go
 ### API Access
 ```bash
 # Test the local endpoint
+# Test the local endpoint
 curl http://127.0.0.1:8080/health
 # Expected: {"status": "ok"}
 ```
+
+### Dashboard Verification
+1.  Navigate to `https://<your-domain>` (e.g., `https://build.lockb0x.dev`).
+2.  Verify the **"Pakana Node"** header is visible.
+3.  Check for the **"Analytics Consent"** banner at the bottom.
+4.  Confirm the **"Live Ledger Stream"** is updating.
 
 ## 3. Manual Interventions (If Needed)
 

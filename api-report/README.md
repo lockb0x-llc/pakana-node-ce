@@ -33,6 +33,25 @@ Interactive Swagger-based documentation is available directly on the node:
 - **Swagger UI (Public)**: `https://build.lockb0x.dev/docs`
 - **OpenAPI Spec**: `http://localhost:8080/openapi.yaml`
 
+## Dashboard Architecture
+
+The embedded dashboard is a modern, single-page application (SPA) designed for "Glassmorphism" aesthetics and privacy compliance.
+
+### Tech Stack
+- **Framework**: React 18 + Vite
+- **Styling**: Tailwind CSS (with custom glass/neon utilities)
+- **State Management**: React Hooks (Controller Pattern in `App.tsx`)
+- **Icons**: Lucide React
+
+### Key Components
+- **LedgerTable**: Real-time stream of Stellar ledgers.
+- **StateExplorer**: Search interface for Accounts and Transactions (delegates to YottaDB).
+- **MetricCards**: Visualizations for transaction volume and node health.
+
+### Privacy & Analytics
+- **Microsoft Clarity**: Integrated for heatmaps/session recording.
+- **GDPR Compliance**: The `CookieBanner` component ensures Clarity is **never** initialized without explicit user consent (stored in `localStorage`).
+
 ## Build and Deployment
 
 ### Docker (Production)
