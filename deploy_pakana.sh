@@ -249,7 +249,7 @@ if [ ! -d "$TARGET_DIR/.git" ]; then
     
     # Switch to the requested branch for testing
     cd \$TARGET_DIR
-    git checkout ce-documentation-review
+    git checkout main
     
     # Ensure admin user owns it for SSH access convenience
     chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
@@ -258,8 +258,8 @@ else
     cd \$TARGET_DIR
     git config --global --add safe.directory \$TARGET_DIR
     git fetch
-    git checkout ce-documentation-review
-    git pull origin ce-documentation-review
+    git checkout main
+    git pull origin main
     chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
 fi
 
@@ -278,18 +278,19 @@ docker run --rm -v pakana_yottadb-data:/data \
   -e ydb_rel=r2.03_x86_64 \
   yottadb/yottadb-base:latest-master bash -c '
     export ydb_dist=/opt/yottadb/current
-    source \$ydb_dist/ydb_env_set
     
     if [ ! -f /data/r2.03_x86_64/g/yottadb.dat ]; then
         echo "Creating new global directory and database..."
         mkdir -p /data/r2.03_x86_64/g /data/r2.03_x86_64/r /data/r2.03_x86_64/o /data/r2.03_x86_64/o/utf8
         
-        # Generate GDE
-        \$ydb_dist/mumps -run GDE <<GDEEOF
-change -region DEFAULT -key_size=256 -record_size=64000
-change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat
-exit
-GDEEOF
+        export ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld
+        
+        # Generate GDE configuraiton
+        echo "change -region DEFAULT -key_size=256 -record_size=64000" > /tmp/gde.txt
+        echo "change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat" >> /tmp/gde.txt
+        echo "exit" >> /tmp/gde.txt
+        
+        \$ydb_dist/mumps -run GDE < /tmp/gde.txt
         
         # Create DB
         \$ydb_dist/mupip create
@@ -301,6 +302,8 @@ GDEEOF
     fi
 
     # Initialize SQL Schema via Octo
+    # Now that .gld exists, we can source env_set safely
+    source \$ydb_dist/ydb_env_set
     if [ -f /usr/local/bin/octo ] || [ -f \$ydb_dist/plugin/octo/octo ]; then
         OCTO_BIN=\$(which octo || echo "\$ydb_dist/plugin/octo/octo")
         echo "Loading DDL from /init.sql..."
