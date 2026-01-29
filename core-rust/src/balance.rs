@@ -451,7 +451,6 @@ pub fn apply_balance_updates(
 
     Ok(updates)
 }
-}
 
 #[cfg(test)]
 mod tests {
