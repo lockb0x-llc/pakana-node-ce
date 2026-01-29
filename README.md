@@ -150,7 +150,7 @@ For full details, see the prompts within the deployment script.
 
 5.  **Access Dashboard**:
     Open `https://<your-domain>` in your browser.
-    Default: `https://build.lockb0x.dev` (or your configured domain).
+    Default: `https://pakana.lockb0x.io` (or your configured domain).
 
 ## 9. CI/CD & Automated Deployment
 

@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({ nodeStatus, isDemoMode }) => {
                     </div>
                     <div className="h-4 w-px bg-slate-800"></div>
                     <a 
-                        href="https://build.lockb0x.dev/docs" 
+                        href="https://~/docs" 
                         target="_blank" 
                         rel="noreferrer"
                         className="text-slate-400 hover:text-white transition-colors"

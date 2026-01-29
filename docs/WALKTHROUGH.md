@@ -37,7 +37,7 @@ curl http://127.0.0.1:8080/health
 ```
 
 ### Dashboard Verification
-1.  Navigate to `https://<your-domain>` (e.g., `https://build.lockb0x.dev`).
+1.  Navigate to `https://<your-domain>` (e.g., `https://pakana.lockb0x.io`).
 2.  Verify the **"Pakana Node"** header is visible.
 3.  Check for the **"Analytics Consent"** banner at the bottom.
 4.  Confirm the **"Live Ledger Stream"** is updating.
