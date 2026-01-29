@@ -178,9 +178,7 @@ fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result
         account_key.set(seq_str.as_bytes())?;
         
         Ok(yottadb::TransactionStatus::Ok)
-    }, "UPDATE_SEQ", &[]).map_err(|e| {
-        yottadb::YDBError::from(&format!("{:?}", e))
-    })?;
+    }, "UPDATE_SEQ", &[])?;
     
     Ok(())
 }
