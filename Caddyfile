@@ -3,6 +3,11 @@
 }
 
 {$DOMAIN_NAME} {
+    handle_path /docs* {
+        root * /data/docs
+        file_server
+    }
+
     reverse_proxy api-report:8080
 
     # Security headers
