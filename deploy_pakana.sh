@@ -240,12 +240,16 @@ export HOME=/root
 TARGET_DIR="/opt/pakana"
 mkdir -p \$TARGET_DIR
 
-if [ ! -d "\$TARGET_DIR/.git" ]; then
-    echo "Cloning repository to \$TARGET_DIR..."
+if [ ! -d "$TARGET_DIR/.git" ]; then
+    echo "Cloning repository to $TARGET_DIR..."
     git clone https://github.com/lockb0x-llc/pakana-node-ce.git \$TARGET_DIR
     
     # Configure git safety for the repo
     git config --global --add safe.directory \$TARGET_DIR
+    
+    # Switch to the requested branch for testing
+    cd \$TARGET_DIR
+    git checkout ce-documentation-review
     
     # Ensure admin user owns it for SSH access convenience
     chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
@@ -253,8 +257,9 @@ else
     echo "Repository already exists. Pulling latest changes..."
     cd \$TARGET_DIR
     git config --global --add safe.directory \$TARGET_DIR
-    git pull
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    git fetch
+    git checkout ce-documentation-review
+    git pull origin ce-documentation-review
     chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
 fi
 
@@ -264,14 +269,17 @@ echo "ADMIN_EMAIL=$ADMIN_EMAIL" >> \$TARGET_DIR/.env
 
 cd \$TARGET_DIR
 
-echo "Initializing YottaDB..."
-# Use ephemeral container to initialize the DB files securely
+echo "Initializing YottaDB & SQL Schema..."
+# Use ephemeral container to initialize the DB files and SQL DDL
 docker run --rm -v pakana_yottadb-data:/data \
+  -v \$TARGET_DIR/init.sql:/init.sql \
   -e ydb_dist=/opt/yottadb/current \
   -e ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld \
   -e ydb_rel=r2.03_x86_64 \
   yottadb/yottadb-base:latest-master bash -c '
     export ydb_dist=/opt/yottadb/current
+    source \$ydb_dist/ydb_env_set
+    
     if [ ! -f /data/r2.03_x86_64/g/yottadb.dat ]; then
         echo "Creating new global directory and database..."
         mkdir -p /data/r2.03_x86_64/g /data/r2.03_x86_64/r /data/r2.03_x86_64/o /data/r2.03_x86_64/o/utf8
@@ -290,8 +298,15 @@ GDEEOF
         # Ensure permissions for container user
         chmod -R 777 /data/r2.03_x86_64
         echo "Database initialized."
+    fi
+
+    # Initialize SQL Schema via Octo
+    if [ -f /usr/local/bin/octo ] || [ -f \$ydb_dist/plugin/octo/octo ]; then
+        OCTO_BIN=\$(which octo || echo "\$ydb_dist/plugin/octo/octo")
+        echo "Loading DDL from /init.sql..."
+        \$OCTO_BIN -f /init.sql
     else
-        echo "Database already exists."
+        echo "WARNING: Octo not found, skipping SQL initialization."
     fi
 '
 
