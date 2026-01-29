@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakana Node - Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #020617;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        header {
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #10b981;
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .card:hover {
+            border-color: #10b981;
+            transform: translateY(-2px);
+            background-color: #1e293b;
+        }
+
+        .card h2 {
+            color: #f8fafc;
+            font-size: 1.25rem;
+            margin: 0 0 8px 0;
+        }
+
+        .card p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .icon {
+            color: #10b981;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Pakana Documentation</h1>
+            <div class="subtitle">Community Edition (v0.5.0)</div>
+        </header>
+
+        <div class="grid">
+            <a href="WALKTHROUGH.md" class="card">
+                <span class="icon">🚀</span>
+                <h2>One-Click Walkthrough</h2>
+                <p>Deploy, configure, and verify your Pakana Node installation.</p>
+            </a>
+
+            <a href="TECHNICAL_MANUAL.md" class="card">
+                <span class="icon">📘</span>
+                <h2>Technical Manual</h2>
+                <p>Deep dive into architecture, YottaDB globals, and data flows.</p>
+            </a>
+
+            <a href="SECURITY_OPS_REVIEW.md" class="card">
+                <span class="icon">🛡️</span>
+                <h2>Security & Ops</h2>
+                <p>Security model, firewall rules, and operational best practices.</p>
+            </a>
+
+            <a href="ARCHITECTURE.md" class="card">
+                <span class="icon">🏗️</span>
+                <h2>Architecture Overview</h2>
+                <p>High-level system design and component interactions.</p>
+            </a>
+
+            <a href="REQUIREMENTS_SPECS.md" class="card">
+                <span class="icon">📋</span>
+                <h2>Requirements</h2>
+                <p>System specifications and hardware requirements.</p>
+            </a>
+
+            <a href="ROADMAP.md" class="card">
+                <span class="icon">🗺️</span>
+                <h2>Project Roadmap</h2>
+                <p>Future features and development milestones.</p>
+            </a>
+
+            <a href="deployment-analysis.html" class="card">
+                <span class="icon">📊</span>
+                <h2>Deployment Analysis</h2>
+                <p>Detailed verification report and checks.</p>
+            </a>
+        </div>
+
+        <footer>
+            &copy; 2026 Lockb0x LLC. All rights reserved.
+        </footer>
+    </div>
+</body>
+
+</html>
