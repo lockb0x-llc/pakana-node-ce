@@ -322,7 +322,7 @@ pub fn apply_balance_updates(
     ctx: &Context,
     deltas: &[BalanceDelta],
     ledger_seq: i64,
-) -> Result<usize, yottadb::YDBError> {
+) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
     if deltas.is_empty() {
         return Ok(0);
     }
@@ -445,9 +445,7 @@ pub fn apply_balance_updates(
             }
         }
         Ok(yottadb::TransactionStatus::Ok)
-    }, "APPLY_BALANCES", &[]).map_err(|e| {
-        yottadb::YDBError::from(&format!("{:?}", e))
-    })?;
+    }, "APPLY_BALANCES", &[])?;
 
     Ok(updates)
 }
