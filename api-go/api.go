@@ -67,54 +67,37 @@ func StartInternalServer(conn *yottadb.Conn, client *horizonclient.Client) {
 		fmt.Printf("[DEBUG] Successfully fetched account %s from Horizon (Seq: %d)\n", req.AccountID, hAccount.Sequence)
 
 		// 2. Persist to YottaDB (Hydrate)
-		// Use a transaction for atomicity ideally, but simplistic set for now is fine for "Community"
-		// Logic mirrors what core-rust might do, but here we just store the raw balance/seq as a cache
-		// ^Account(accountID, "balance") = Balance (native)
-		// ^Account(accountID, "seq_num") = Sequence
-
-		// Convert native balance to stroops (string)
-		// For simplicity in this "Community" node, we just store what we get.
-		// Real "Pro" node would do bigmath.
-
-		// Store balances
-		for _, bal := range hAccount.Balances {
-			if bal.Asset.Type == "native" {
-				conn.Node("^Account", req.AccountID, "balance").Set(bal.Balance)
-				// Verify
-				v := conn.Node("^Account", req.AccountID, "balance").Get("")
-				if v != bal.Balance {
-					log.Printf("ERROR: Native balance persistence failed! Expected %s, Got %s", bal.Balance, v)
-				}
-			} else {
-				assetCode := bal.Asset.Code
-				if assetCode == "" {
-					assetCode = bal.Asset.Type // fallback
-				}
-				// Standardized Schema: ^Account(req.AccountID, "trustlines", code, issuer, "balance")
-				conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "balance").Set(bal.Balance)
-				conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "limit").Set(bal.Limit)
-				// Verify
-				v := conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "balance").Get("")
-				if v != bal.Balance {
-					log.Printf("ERROR: Trustline persistence failed for %s:%s!", assetCode, bal.Issuer)
+		// Use a transaction for atomicity
+		ok := conn.Transaction("", nil, func() int {
+			// Store balances
+			for _, bal := range hAccount.Balances {
+				if bal.Asset.Type == "native" {
+					conn.Node("^Account", req.AccountID, "balance").Set(bal.Balance)
+				} else {
+					assetCode := bal.Asset.Code
+					if assetCode == "" {
+						assetCode = bal.Asset.Type // fallback
+					}
+					// Standardized Schema: ^Account(req.AccountID, "trustlines", code, issuer, "balance")
+					conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "balance").Set(bal.Balance)
+					conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "limit").Set(bal.Limit)
 				}
 			}
+			conn.Node("^Account", req.AccountID, "seq_num").Set(hAccount.Sequence)
+
+			// Mark as Tracked for Sparse History
+			conn.Node("^Tracked", req.AccountID).Set("1")
+
+			return yottadb.YDB_OK
+		})
+
+		if !ok {
+			log.Printf("ERROR: Hydration transaction failed for account %s", req.AccountID)
+			http.Error(w, "Hydration failed", http.StatusInternalServerError)
+			return
 		}
-		conn.Node("^Account", req.AccountID, "seq_num").Set(hAccount.Sequence)
-		// Verify
-		vSeq := conn.Node("^Account", req.AccountID, "seq_num").Get("0")
-		log.Printf("Hydration Verify: Account %s Seq is %s", req.AccountID, vSeq)
 
-		if vSeq != fmt.Sprintf("%d", hAccount.Sequence) {
-			log.Printf("CRITICAL ERROR: Sequence mismatch after write! Expected %d, Got %s", hAccount.Sequence, vSeq)
-		} else {
-			fmt.Printf("[DEBUG] YottaDB write verification successful for %s\n", req.AccountID)
-		}
-
-		// Mark as Tracked for Sparse History
-		conn.Node("^Tracked", req.AccountID).Set("1")
-
-		log.Printf("Hydrated account %s (Seq: %s)", req.AccountID, hAccount.Sequence)
+		log.Printf("Hydrated account %s (Seq: %d)", req.AccountID, hAccount.Sequence)
 
 		// 3. Gap Detection & Backfill (Robust Hydration)
 		go backfillHistory(conn, client, req.AccountID)

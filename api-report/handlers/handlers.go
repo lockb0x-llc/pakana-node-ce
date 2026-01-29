@@ -105,9 +105,9 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Not found locally - Delegate Hydration to api-go (The Kernel)
-	log.Printf("Account %s not found in YottaDB. Delegating hydration to api-go...", accountID)
-	if err := delegateHydration(accountID); err != nil {
+	// 2. Not found locally - Perform Native Hydration
+	log.Printf("Account %s not found in YottaDB. Performing native hydration...", accountID)
+	if err := hydrateAccount(accountID); err != nil {
 		sendError(w, fmt.Sprintf("Hydration failed: %v", err), http.StatusNotFound)
 		return
 	}
@@ -132,7 +132,7 @@ func GetAccountBalance(w http.ResponseWriter, r *http.Request) {
 	account, err := fetchAccount(accountID, false)
 	if err != nil {
 		// Try hydration if not found
-		if err := delegateHydration(accountID); err == nil {
+		if err := hydrateAccount(accountID); err == nil {
 			account, err = fetchAccount(accountID, false)
 		}
 	}
@@ -159,7 +159,7 @@ func GetAccountTrustlines(w http.ResponseWriter, r *http.Request) {
 	trustlines, err := fetchTrustlines(accountID)
 	if err != nil || len(trustlines) == 0 {
 		// Try hydration
-		if err := delegateHydration(accountID); err == nil {
+		if err := hydrateAccount(accountID); err == nil {
 			trustlines, _ = fetchTrustlines(accountID)
 		}
 	}
@@ -245,23 +245,48 @@ func sendError(w http.ResponseWriter, message string, code int) {
 	json.NewEncoder(w).Encode(ErrorResponse{Error: message})
 }
 
-// delegateHydration calls api-go internal endpoint to fetch and persist data
-func delegateHydration(accountID string) error {
-	internalURL := "http://pakana-api-go:8081/internal/cache-account"
-	body, _ := json.Marshal(map[string]string{"account_id": accountID})
-	
-	resp, err := http.Post(internalURL, "application/json", strings.NewReader(string(body)))
+// hydrateAccount fetches account data from Horizon and persists to YottaDB using a transaction
+func hydrateAccount(accountID string) error {
+	// 1. Fetch from Horizon
+	accountReq := horizonclient.AccountRequest{AccountID: accountID}
+	hAccount, err := hzClient.AccountDetail(accountReq)
 	if err != nil {
-		return fmt.Errorf("failed to call api-go internal: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("api-go returned error: %d", resp.StatusCode)
+		return fmt.Errorf("horizon error: %v", err)
 	}
 
-	// Give YottaDB a moment to sync cache if needed (though shared memory is instant)
-	time.Sleep(100 * time.Millisecond)
+	// 2. Persist to YottaDB via Transaction (Atomic write)
+	// Transaction signature: (transID string, localsToRestore []string, callback func() int) bool
+	ok := ydbConn.Transaction("", nil, func() int {
+		accountNode := ydbConn.Node("^Account", accountID)
+
+		// Store balances
+		for _, bal := range hAccount.Balances {
+			if bal.Asset.Type == "native" {
+				accountNode.Child("balance").Set(bal.Balance)
+			} else {
+				assetCode := bal.Asset.Code
+				if assetCode == "" {
+					assetCode = bal.Asset.Type
+				}
+				// ^Account(id, "trustlines", code, issuer, "balance")
+				accountNode.Child("trustlines", assetCode, bal.Issuer, "balance").Set(bal.Balance)
+				accountNode.Child("trustlines", assetCode, bal.Issuer, "limit").Set(bal.Limit)
+			}
+		}
+		accountNode.Child("seq_num").Set(hAccount.Sequence)
+		accountNode.Child("last_modified").Set(time.Now().Unix()) // Best effort for cache
+
+		// Mark as Tracked for Sparse History (In case api-go needs to know)
+		ydbConn.Node("^Tracked", accountID).Set("1")
+
+		return yottadb.YDB_OK
+	})
+
+	if !ok {
+		return fmt.Errorf("yottadb transaction failed or was rolled back")
+	}
+
+	log.Printf("Successfully hydrated account %s (Seq: %d)", accountID, hAccount.Sequence)
 	return nil
 }
 

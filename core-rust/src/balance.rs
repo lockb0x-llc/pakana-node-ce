@@ -313,177 +313,141 @@ fn account_id_to_hex(account_id: &stellar_xdr::curr::AccountId) -> String {
 /// Updates:
 /// - ^Account(account_id, "balance") for native XLM
 /// - ^Account(account_id, "trustlines", asset_key) for non-native assets
+/// Apply balance deltas to YottaDB using a transaction (TP).
+/// 
+/// Updates:
+/// - ^Account(account_id, "balance") for native XLM
+/// - ^Account(account_id, "trustlines", asset_key) for non-native assets
 pub fn apply_balance_updates(
     ctx: &Context,
     deltas: &[BalanceDelta],
     ledger_seq: i64,
 ) -> Result<usize, yottadb::YDBError> {
-    let mut updates = 0;
-    
-    for delta in deltas {
-        // Handle trustline markers (ChangeTrust operations)
-        if delta.asset.starts_with("trustline:") {
-            let asset_key = delta.asset.strip_prefix("trustline:").unwrap_or(&delta.asset);
-            let mut code = asset_key.to_string();
-            let mut issuer = String::new();
-            
-            if asset_key.contains(':') {
-                let parts: Vec<&str> = asset_key.split(':').collect();
-                if parts.len() >= 2 {
-                    code = parts[0].to_string();
-                    issuer = parts[1].to_string();
-                }
-            }
+    if deltas.is_empty() {
+        return Ok(0);
+    }
 
-            if delta.reason == "remove_trustline" {
-                // Remove trustline entry
-                let mut trustline_key = KeyContext::variable(ctx, "^Account");
-                trustline_key.push(delta.account_id.as_bytes().to_vec());
-                trustline_key.push(b"trustlines".to_vec());
-                trustline_key.push(code.as_bytes().to_vec());
-                if !issuer.is_empty() {
-                    trustline_key.push(issuer.as_bytes().to_vec());
+    // Use YottaDB TP for atomic batch updates
+    ctx.tp(|_t_ctx| {
+        let mut updates = 0;
+        for delta in deltas {
+            // Handle trustline markers (ChangeTrust operations)
+            if delta.asset.starts_with("trustline:") {
+                let asset_key = delta.asset.strip_prefix("trustline:").unwrap_or(&delta.asset);
+                let mut code = asset_key.to_string();
+                let mut issuer = String::new();
+                
+                if asset_key.contains(':') {
+                    let parts: Vec<&str> = asset_key.split(':').collect();
+                    if parts.len() >= 2 {
+                        code = parts[0].to_string();
+                        issuer = parts[1].to_string();
+                    }
                 }
-                
-                // Delete the key and its subtree
-                let _ = trustline_key.delete(yottadb::DeleteType::DelTree);
-                
-                info!(
-                    "  Trustline: {} removed {}:{} ({})",
-                    &delta.account_id[..12.min(delta.account_id.len())],
-                    code, issuer,
-                    delta.reason
-                );
-            } else {
-                // Create or update trustline limit
-                let mut trustline_key = KeyContext::variable(ctx, "^Account");
-                trustline_key.push(delta.account_id.as_bytes().to_vec());
-                trustline_key.push(b"trustlines".to_vec());
-                trustline_key.push(code.as_bytes().to_vec());
-                if !issuer.is_empty() {
-                    trustline_key.push(issuer.as_bytes().to_vec());
-                }
-                
-                let mut limit_key = trustline_key.clone();
-                limit_key.push(b"limit".to_vec());
-                
-                // Extract limit from reason
-                let limit = delta.reason.strip_prefix("set_trustline_limit:")
-                    .and_then(|s| s.parse::<i64>().ok())
-                    .unwrap_or(0);
+
+                if delta.reason == "remove_trustline" {
+                    let mut trustline_key = KeyContext::variable(ctx, "^Account");
+                    trustline_key.push(delta.account_id.as_bytes().to_vec());
+                    trustline_key.push(b"trustlines".to_vec());
+                    trustline_key.push(code.as_bytes().to_vec());
+                    if !issuer.is_empty() {
+                        trustline_key.push(issuer.as_bytes().to_vec());
+                    }
+                    let _ = trustline_key.delete(yottadb::DeleteType::DelTree);
+                } else {
+                    let mut trustline_key = KeyContext::variable(ctx, "^Account");
+                    trustline_key.push(delta.account_id.as_bytes().to_vec());
+                    trustline_key.push(b"trustlines".to_vec());
+                    trustline_key.push(code.as_bytes().to_vec());
+                    if !issuer.is_empty() {
+                        trustline_key.push(issuer.as_bytes().to_vec());
+                    }
                     
-                limit_key.set(limit.to_string().as_bytes())?;
-                
-                // Initialize balance to 0 if not exists
-                let mut balance_key = trustline_key.clone();
+                    let mut limit_key = trustline_key.clone();
+                    limit_key.push(b"limit".to_vec());
+                    let limit = delta.reason.strip_prefix("set_trustline_limit:")
+                        .and_then(|s| s.parse::<i64>().ok())
+                        .unwrap_or(0);
+                    limit_key.set(limit.to_string().as_bytes())?;
+                    
+                    let mut balance_key = trustline_key.clone();
+                    balance_key.push(b"balance".to_vec());
+                    if balance_key.get().is_err() {
+                        balance_key.set(b"0")?;
+                    }
+                }
+                updates += 1;
+                continue;
+            }
+            
+            if delta.delta == 0 {
+                continue;
+            }
+            
+            if delta.asset == "native" {
+                let mut balance_key = KeyContext::variable(ctx, "^Account");
+                balance_key.push(delta.account_id.as_bytes().to_vec());
                 balance_key.push(b"balance".to_vec());
                 
-                if balance_key.get().is_err() {
-                    balance_key.set(b"0")?;
-                }
+                let current_balance: i64 = match balance_key.get() {
+                    Ok(bytes) => {
+                        let s = String::from_utf8_lossy(&bytes);
+                        s.parse().unwrap_or(0)
+                    }
+                    Err(_) => 0,
+                };
                 
-                info!(
-                    "  Trustline: {} set {}:{} limit={} ({})",
-                    &delta.account_id[..12.min(delta.account_id.len())],
-                    code, issuer,
-                    limit,
-                    delta.reason
-                );
-            }
-            
-            updates += 1;
-            continue;
-        }
-        
-        // Skip zero deltas (markers for merge, etc.)
-        if delta.delta == 0 {
-            continue;
-        }
-        
-        // Handle native XLM balance
-        if delta.asset == "native" {
-            let mut balance_key = KeyContext::variable(ctx, "^Account");
-            balance_key.push(delta.account_id.as_bytes().to_vec());
-            balance_key.push(b"balance".to_vec());
-            
-            let current_balance: i64 = match balance_key.get() {
-                Ok(bytes) => {
-                    let s = String::from_utf8_lossy(&bytes);
-                    s.parse().unwrap_or(0)
-                }
-                Err(_) => 0,
-            };
-            
-            let new_balance = current_balance + delta.delta;
-            balance_key.set(new_balance.to_string().as_bytes())?;
-            
-            // Update last_modified
-            let mut modified_key = KeyContext::variable(ctx, "^Account");
-            modified_key.push(delta.account_id.as_bytes().to_vec());
-            modified_key.push(b"last_modified".to_vec());
-            modified_key.set(ledger_seq.to_string().as_bytes())?;
-            
-            info!(
-                "  Balance: {} {:+} stroops → {} ({})",
-                &delta.account_id[..12.min(delta.account_id.len())],
-                delta.delta,
-                new_balance,
-                delta.reason
-            );
-            
-            updates += 1;
-        } else {
-            // Handle non-native asset (trustline) balance changes
-            let mut trustline_balance = KeyContext::variable(ctx, "^Account");
-            trustline_balance.push(delta.account_id.as_bytes().to_vec());
-            trustline_balance.push(b"trustlines".to_vec());
-            
-            // Standardized Schema: ^Account(id, "trustlines", code, issuer, "balance")
-            if delta.asset.contains(':') {
-                let parts: Vec<&str> = delta.asset.split(':').collect();
-                if parts.len() >= 2 {
-                    trustline_balance.push(parts[0].as_bytes().to_vec()); // Code
-                    trustline_balance.push(parts[1].as_bytes().to_vec()); // Issuer
+                let new_balance = current_balance + delta.delta;
+                balance_key.set(new_balance.to_string().as_bytes())?;
+                
+                let mut modified_key = KeyContext::variable(ctx, "^Account");
+                modified_key.push(delta.account_id.as_bytes().to_vec());
+                modified_key.push(b"last_modified".to_vec());
+                modified_key.set(ledger_seq.to_string().as_bytes())?;
+                
+                updates += 1;
+            } else {
+                let mut trustline_balance = KeyContext::variable(ctx, "^Account");
+                trustline_balance.push(delta.account_id.as_bytes().to_vec());
+                trustline_balance.push(b"trustlines".to_vec());
+                
+                if delta.asset.contains(':') {
+                    let parts: Vec<&str> = delta.asset.split(':').collect();
+                    if parts.len() >= 2 {
+                        trustline_balance.push(parts[0].as_bytes().to_vec());
+                        trustline_balance.push(parts[1].as_bytes().to_vec());
+                    } else {
+                        trustline_balance.push(delta.asset.as_bytes().to_vec());
+                    }
                 } else {
                     trustline_balance.push(delta.asset.as_bytes().to_vec());
                 }
-            } else {
-                trustline_balance.push(delta.asset.as_bytes().to_vec());
+                
+                trustline_balance.push(b"balance".to_vec());
+                
+                let current: i64 = match trustline_balance.get() {
+                    Ok(bytes) => {
+                        let s = String::from_utf8_lossy(&bytes);
+                        s.parse().unwrap_or(0)
+                    }
+                    Err(_) => 0,
+                };
+                
+                let new_balance = current + delta.delta;
+                trustline_balance.set(new_balance.to_string().as_bytes())?;
+                
+                let mut modified_key = KeyContext::variable(ctx, "^Account");
+                modified_key.push(delta.account_id.as_bytes().to_vec());
+                modified_key.push(b"last_modified".to_vec());
+                modified_key.set(ledger_seq.to_string().as_bytes())?;
+                
+                updates += 1;
             }
-            
-            trustline_balance.push(b"balance".to_vec());
-            
-            let current: i64 = match trustline_balance.get() {
-                Ok(bytes) => {
-                    let s = String::from_utf8_lossy(&bytes);
-                    s.parse().unwrap_or(0)
-                }
-                Err(_) => 0,
-            };
-            
-            let new_balance = current + delta.delta;
-            trustline_balance.set(new_balance.to_string().as_bytes())?;
-            
-            // Update last_modified
-            let mut modified_key = KeyContext::variable(ctx, "^Account");
-            modified_key.push(delta.account_id.as_bytes().to_vec());
-            modified_key.push(b"last_modified".to_vec());
-            modified_key.set(ledger_seq.to_string().as_bytes())?;
-            
-            info!(
-                "  Trustline: {} {} {:+} → {} ({})",
-                &delta.account_id[..12.min(delta.account_id.len())],
-                &delta.asset,
-                delta.delta,
-                new_balance,
-                delta.reason
-            );
-            
-            updates += 1;
         }
-    }
-    
-    Ok(updates)
+        Ok(yottadb::TransactionStatus::Commit(updates))
+    }, "APPLY_BALANCES", &[])?;
+
+    Ok(deltas.len()) // Simplified return as TP wrapper returns () or specific result
 }
 
 #[cfg(test)]

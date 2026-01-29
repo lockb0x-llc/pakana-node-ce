@@ -248,19 +248,19 @@ if [ ! -d "$TARGET_DIR/.git" ]; then
     git config --global --add safe.directory \$TARGET_DIR
     
     # Switch to the requested branch for testing
-    cd \$TARGET_DIR
-    git checkout main
+    cd $TARGET_DIR
+    git checkout ce-documentation-review
     
     # Ensure admin user owns it for SSH access convenience
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    chown -R $ADMIN_USER:$ADMIN_USER $TARGET_DIR
 else
     echo "Repository already exists. Pulling latest changes..."
-    cd \$TARGET_DIR
-    git config --global --add safe.directory \$TARGET_DIR
+    cd $TARGET_DIR
+    git config --global --add safe.directory $TARGET_DIR
     git fetch
-    git checkout main
-    git pull origin main
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    git checkout ce-documentation-review
+    git pull origin ce-documentation-review
+    chown -R $ADMIN_USER:$ADMIN_USER $TARGET_DIR
 fi
 
 echo "Configuring environment..."

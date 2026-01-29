@@ -61,19 +61,45 @@ func main() {
 
 		seqStr := fmt.Sprintf("%d", ledger.Sequence)
 
-		// Write ledger header: ^Stellar("ledger", sequence, "closed_at")
-		conn.Node("^Stellar", "ledger", seqStr, "closed_at").Set(ledger.ClosedAt.String())
-
-		// Phase 3: Fetch transactions for this ledger
-		txCount, txErr := fetchAndPersistTransactions(conn, client, ledger.Sequence)
+		// 1. Fetch transactions first (Outside TP to keep txn window small)
+		txCount, txs, txErr := fetchTransactions(client, ledger.Sequence)
 		if txErr != nil {
 			log.Printf("Error fetching transactions for ledger %d: %v", ledger.Sequence, txErr)
-		} else {
-			log.Printf("  Wrote %d transactions for ledger %d", txCount, ledger.Sequence)
+			return
 		}
 
-		// Update ^Stellar("latest") = sequence (AFTER transactions are written)
-		conn.Node("^Stellar", "latest").Set(seqStr)
+		// 2. Atomic Write Block
+		ok := conn.Transaction("", nil, func() int {
+			// Write Header
+			conn.Node("^Stellar", "ledger", seqStr, "closed_at").Set(ledger.ClosedAt.String())
+
+			// Write Transactions
+			for i, tx := range txs {
+				// Sparse History Filter
+				if !isTracked(conn, tx.Account) || isBlocked(tx.Account) {
+					continue
+				}
+
+				idxStr := fmt.Sprintf("%d", i)
+				txNode := conn.Node("^Stellar", "ledger", seqStr, "tx", idxStr)
+				txNode.Child("xdr").Set(tx.EnvelopeXdr)
+				txNode.Child("hash").Set(tx.Hash)
+
+				// Index Hash -> Ledger Sequence (For Gap Detection)
+				conn.Node("^Stellar", "tx_hash", tx.Hash).Set(seqStr)
+			}
+
+			// Update ^Stellar("latest") = sequence (The atomic commit pointer)
+			conn.Node("^Stellar", "latest").Set(seqStr)
+
+			return yottadb.YDB_OK
+		})
+
+		if !ok {
+			log.Printf("CRITICAL: Transaction failed for ledger %d", ledger.Sequence)
+		} else {
+			log.Printf("✓ Committed Ledger %d (%d txs processed)", ledger.Sequence, txCount)
+		}
 	})
 
 	if err != nil {
@@ -83,11 +109,8 @@ func main() {
 	select {}
 }
 
-// fetchAndPersistTransactions fetches all transactions for a given ledger sequence
-// and persists them to YottaDB as ^Stellar("ledger", seq, "tx", idx, "xdr"|"hash")
-func fetchAndPersistTransactions(conn *yottadb.Conn, client *horizonclient.Client, ledgerSeq int32) (int, error) {
-	seqStr := fmt.Sprintf("%d", ledgerSeq)
-
+// fetchTransactions fetches all transactions for a given ledger sequence
+func fetchTransactions(client *horizonclient.Client, ledgerSeq int32) (int, []horizon.Transaction, error) {
 	txRequest := horizonclient.TransactionRequest{
 		ForLedger: uint(ledgerSeq),
 		Limit:     200,
@@ -95,39 +118,8 @@ func fetchAndPersistTransactions(conn *yottadb.Conn, client *horizonclient.Clien
 
 	txPage, err := client.Transactions(txRequest)
 	if err != nil {
-		return 0, fmt.Errorf("failed to fetch transactions: %w", err)
+		return 0, nil, fmt.Errorf("failed to fetch transactions: %w", err)
 	}
 
-	txCount := 0
-	for _, tx := range txPage.Embedded.Records {
-		// Check Sparse History Filter
-		if !isTracked(conn, tx.Account) {
-			// Skip transactions from untracked accounts to maintain sparse history
-			continue
-		}
-
-		// Check BlockList
-		if isBlocked(tx.Account) {
-			log.Printf("Skipping blocked transaction from %s", tx.Account)
-			continue
-		}
-
-		idxStr := fmt.Sprintf("%d", txCount)
-
-		// Base node: ^Stellar("ledger", seq, "tx", idx)
-		txNode := conn.Node("^Stellar", "ledger", seqStr, "tx", idxStr)
-
-		// Write XDR
-		txNode.Child("xdr").Set(tx.EnvelopeXdr)
-
-		// Write Hash
-		txNode.Child("hash").Set(tx.Hash)
-
-		// Index Hash -> Ledger Sequence (For Gap Detection)
-		conn.Node("^Stellar", "tx_hash", tx.Hash).Set(seqStr)
-
-		txCount++
-	}
-
-	return txCount, nil
+	return len(txPage.Embedded.Records), txPage.Embedded.Records, nil
 }
