@@ -79,7 +79,10 @@ if [ -z "$SSH_KEY" ]; then
     exit 1
 fi
 
-read -p "Enter Domain Name (default: build.lockb0x.dev): " DOMAIN_NAME
+read -p "Enter Domain Name (default: pakana.lockb0x.io): " DOMAIN_NAME
+DOMAIN_NAME=${DOMAIN_NAME:-pakana.lockb0x.io}
+read -p "Enter Target Branch (default: main): " DEPLOY_BRANCH
+DEPLOY_BRANCH=${DEPLOY_BRANCH:-main}
 read -p "Enter Admin Email (for SSL certificates): " ADMIN_EMAIL
 
 # 3. Create Resource Group
@@ -261,7 +264,7 @@ if [ ! -d "\$TARGET_DIR/.git" ]; then
     
     # Switch to the requested branch for testing
     cd \$TARGET_DIR
-    git checkout ce-documentation-review
+    git checkout $DEPLOY_BRANCH
     
     # Ensure admin user owns it for SSH access convenience
     chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
@@ -270,8 +273,8 @@ else
     cd \$TARGET_DIR
     git config --global --add safe.directory \$TARGET_DIR
     git fetch
-    git checkout ce-documentation-review
-    git pull origin ce-documentation-review
+    git checkout $DEPLOY_BRANCH
+    git pull origin $DEPLOY_BRANCH
     chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
 fi
 
