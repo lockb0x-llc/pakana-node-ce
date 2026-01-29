@@ -32,6 +32,9 @@ WORKDIR /app
 # Copy dashboard assets from Stage 1 (needed for //go:embed in main.go)
 COPY --from=dashboard-builder /app/dashboard/dist ./dashboard/dist
 
+# Explicitly copy Swagger documentation files to the working directory
+COPY swagger-ui.html openapi.yaml ./
+
 # Build Go API
 COPY go.mod go.sum ./
 RUN go mod download || true

@@ -44,9 +44,19 @@ func main() {
 
 	// API Documentation (no auth required for spec and UI)
 	r.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, req *http.Request) {
+		if _, err := os.Stat("openapi.yaml"); os.IsNotExist(err) {
+			log.Printf("Error: openapi.yaml not found in %s", os.Getenv("PWD"))
+			http.Error(w, "openapi.yaml not found", http.StatusNotFound)
+			return
+		}
 		http.ServeFile(w, req, "openapi.yaml")
 	}).Methods("GET")
 	r.HandleFunc("/docs", func(w http.ResponseWriter, req *http.Request) {
+		if _, err := os.Stat("swagger-ui.html"); os.IsNotExist(err) {
+			log.Printf("Error: swagger-ui.html not found in %s", os.Getenv("PWD"))
+			http.Error(w, "swagger-ui.html not found", http.StatusNotFound)
+			return
+		}
 		http.ServeFile(w, req, "swagger-ui.html")
 	}).Methods("GET")
 
@@ -104,10 +114,14 @@ func main() {
 			}
 		}
 
-		// Fallback to index.html for SPA routing (if not an API call)
-		// API calls appearing here likely mean 404 (since we registered API routes first)
-		// But just in case, we only fallback for non-API-looking paths if desirable,
-		// or just always fallback for the frontend to handle 404s.
+
+		// Fallback to index.html for SPA routing
+		// BUT: Explicitly fail for /docs and /manual to prevent masking
+		if path == "/docs" || len(path) > 6 && path[:7] == "/manual" {
+			http.NotFound(w, req)
+			return
+		}
+
 		// Re-open index.html
 		f, err = distFS.Open("index.html")
 		if err != nil {
