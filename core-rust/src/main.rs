@@ -177,8 +177,10 @@ fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result
         let seq_str = format!("{}", seq_num);
         account_key.set(seq_str.as_bytes())?;
         
-        Ok(yottadb::TransactionStatus::Commit(()))
-    }, "UPDATE_SEQ", &[])?;
+        Ok(yottadb::TransactionStatus::Ok)
+    }, "UPDATE_SEQ", &[]).map_err(|e| {
+        yottadb::YDBError::from_str(&format!("{:?}", e))
+    })?;
     
     Ok(())
 }

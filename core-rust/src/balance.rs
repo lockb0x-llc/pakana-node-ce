@@ -327,9 +327,9 @@ pub fn apply_balance_updates(
         return Ok(0);
     }
 
+    let mut updates = 0;
     // Use YottaDB TP for atomic batch updates
-    ctx.tp(|_t_ctx| {
-        let mut updates = 0;
+    ctx.tp(|_| {
         for delta in deltas {
             // Handle trustline markers (ChangeTrust operations)
             if delta.asset.starts_with("trustline:") {
@@ -444,10 +444,13 @@ pub fn apply_balance_updates(
                 updates += 1;
             }
         }
-        Ok(yottadb::TransactionStatus::Commit(updates))
-    }, "APPLY_BALANCES", &[])?;
+        Ok(yottadb::TransactionStatus::Ok)
+    }, "APPLY_BALANCES", &[]).map_err(|e| {
+        yottadb::YDBError::from_str(&format!("{:?}", e))
+    })?;
 
-    Ok(deltas.len()) // Simplified return as TP wrapper returns () or specific result
+    Ok(updates)
+}
 }
 
 #[cfg(test)]

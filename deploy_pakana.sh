@@ -132,6 +132,14 @@ SYSTEM_SETUP_CMD=$(cat <<EOF
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
+# 0. Wait for apt lock (Azure auto-updates)
+wait_for_apt() {
+    echo "Waiting for apt lock..."
+    while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 ; do
+        sleep 2
+    done
+}
+
 # 1. Kernel Tuning for YottaDB
 sysctl -w kernel.sem="250 32000 100 128"
 if ! grep -q "kernel.sem" /etc/sysctl.conf; then echo "kernel.sem=250 32000 100 128" >> /etc/sysctl.conf; fi
@@ -171,12 +179,16 @@ fi
 # 3. Install Docker
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker..."
+    wait_for_apt
     apt-get update
+    wait_for_apt
     apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+    wait_for_apt
     apt-get update
+    wait_for_apt
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     usermod -aG docker $ADMIN_USER
 fi
