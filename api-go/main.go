@@ -35,7 +35,7 @@ func main() {
 	}
 	client := &horizonclient.Client{
 		HorizonURL: horizonURL,
-		HTTP:       &http.Client{Timeout: 30 * time.Second},
+		HTTP:       &http.Client{},
 	}
 	log.Printf("Horizon client initialized with URL: %s", horizonURL)
 
