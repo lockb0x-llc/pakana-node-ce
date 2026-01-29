@@ -278,7 +278,7 @@ docker run --rm -v pakana_yottadb-data:/data \
         
         # Generate GDE
         \$ydb_dist/mumps -run GDE <<GDEEOF
-change -region DEFAULT -key_size=256 -record_size=16384
+change -region DEFAULT -key_size=256 -record_size=64000
 change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat
 exit
 GDEEOF
