@@ -24,11 +24,12 @@ CREATE TABLE stellar_txs (
     tx_hash VARCHAR(64)
 ) GLOBAL '^Stellar("ledger", keys("ledger_seq"), "tx", keys("tx_index"))';
 
--- Trustlines table (Phase 2)
+-- Trustlines table (Standardized Hierarchical Schema)
 -- Stores non-native asset balances per account
 CREATE TABLE trustlines (
     account_id VARCHAR(64) PRIMARY KEY PIECE 1,
-    asset_key VARCHAR(128) KEY NUM 1,
+    asset_code VARCHAR(12) KEY NUM 1,
+    issuer VARCHAR(64) KEY NUM 2,
     balance BIGINT,
     trust_limit BIGINT
-) GLOBAL '^Account(keys("account_id"), "trustlines", keys("asset_key"))';
+) GLOBAL '^Account(keys("account_id"), "trustlines", keys("asset_code"), keys("issuer"))';

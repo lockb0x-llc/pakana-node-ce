@@ -132,6 +132,14 @@ SYSTEM_SETUP_CMD=$(cat <<EOF
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
+# 0. Wait for apt lock (Azure auto-updates)
+wait_for_apt() {
+    echo "Waiting for apt lock..."
+    while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 ; do
+        sleep 2
+    done
+}
+
 # 1. Kernel Tuning for YottaDB
 sysctl -w kernel.sem="250 32000 100 128"
 if ! grep -q "kernel.sem" /etc/sysctl.conf; then echo "kernel.sem=250 32000 100 128" >> /etc/sysctl.conf; fi
@@ -171,12 +179,16 @@ fi
 # 3. Install Docker
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker..."
+    wait_for_apt
     apt-get update
+    wait_for_apt
     apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+    wait_for_apt
     apt-get update
+    wait_for_apt
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     usermod -aG docker $ADMIN_USER
 fi
@@ -247,15 +259,20 @@ if [ ! -d "\$TARGET_DIR/.git" ]; then
     # Configure git safety for the repo
     git config --global --add safe.directory \$TARGET_DIR
     
+    # Switch to the requested branch for testing
+    cd \$TARGET_DIR
+    git checkout ce-documentation-review
+    
     # Ensure admin user owns it for SSH access convenience
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
 else
     echo "Repository already exists. Pulling latest changes..."
     cd \$TARGET_DIR
     git config --global --add safe.directory \$TARGET_DIR
-    git pull
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
-    chown -R $ADMIN_USER:$ADMIN_USER \$TARGET_DIR
+    git fetch
+    git checkout ce-documentation-review
+    git pull origin ce-documentation-review
+    chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
 fi
 
 echo "Configuring environment..."
@@ -264,24 +281,28 @@ echo "ADMIN_EMAIL=$ADMIN_EMAIL" >> \$TARGET_DIR/.env
 
 cd \$TARGET_DIR
 
-echo "Initializing YottaDB..."
-# Use ephemeral container to initialize the DB files securely
+echo "Initializing YottaDB & SQL Schema..."
+# Use ephemeral container to initialize the DB files and SQL DDL
 docker run --rm -v pakana_yottadb-data:/data \
+  -v \$TARGET_DIR/init.sql:/init.sql \
   -e ydb_dist=/opt/yottadb/current \
   -e ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld \
   -e ydb_rel=r2.03_x86_64 \
   yottadb/yottadb-base:latest-master bash -c '
     export ydb_dist=/opt/yottadb/current
+    
     if [ ! -f /data/r2.03_x86_64/g/yottadb.dat ]; then
         echo "Creating new global directory and database..."
         mkdir -p /data/r2.03_x86_64/g /data/r2.03_x86_64/r /data/r2.03_x86_64/o /data/r2.03_x86_64/o/utf8
         
-        # Generate GDE
-        \$ydb_dist/mumps -run GDE <<GDEEOF
-change -region DEFAULT -key_size=256 -record_size=64000
-change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat
-exit
-GDEEOF
+        export ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld
+        
+        # Generate GDE configuraiton
+        echo "change -region DEFAULT -key_size=256 -record_size=64000" > /tmp/gde.txt
+        echo "change -segment DEFAULT -file=/data/r2.03_x86_64/g/yottadb.dat" >> /tmp/gde.txt
+        echo "exit" >> /tmp/gde.txt
+        
+        \$ydb_dist/mumps -run GDE < /tmp/gde.txt
         
         # Create DB
         \$ydb_dist/mupip create
@@ -290,8 +311,17 @@ GDEEOF
         # Ensure permissions for container user
         chmod -R 777 /data/r2.03_x86_64
         echo "Database initialized."
+    fi
+
+    # Initialize SQL Schema via Octo
+    # Now that .gld exists, we can source env_set safely
+    source \$ydb_dist/ydb_env_set
+    if [ -f /usr/local/bin/octo ] || [ -f \$ydb_dist/plugin/octo/octo ]; then
+        OCTO_BIN=\$(which octo || echo "\$ydb_dist/plugin/octo/octo")
+        echo "Loading DDL from /init.sql..."
+        \$OCTO_BIN -f /init.sql
     else
-        echo "Database already exists."
+        echo "WARNING: Octo not found, skipping SQL initialization."
     fi
 '
 

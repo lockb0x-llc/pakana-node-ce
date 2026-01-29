@@ -167,14 +167,18 @@ fn process_ledger_transactions(ctx: &Context, sequence_str: &str) {
     }
 }
 
-/// Update account state in YottaDB: ^Account(account_id, "seq_num") = seq_num
-fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result<(), yottadb::YDBError> {
-    let mut account_key = KeyContext::variable(ctx, "^Account");
-    account_key.push(account_id.as_bytes().to_vec());
-    account_key.push(b"seq_num".to_vec());
-    
-    let seq_str = format!("{}", seq_num);
-    account_key.set(seq_str.as_bytes())?;
+/// Update account state in YottaDB using a transaction (TP): ^Account(account_id, "seq_num") = seq_num
+fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx.tp(|_t_ctx| {
+        let mut account_key = KeyContext::variable(ctx, "^Account");
+        account_key.push(account_id.as_bytes().to_vec());
+        account_key.push(b"seq_num".to_vec());
+        
+        let seq_str = format!("{}", seq_num);
+        account_key.set(seq_str.as_bytes())?;
+        
+        Ok(yottadb::TransactionStatus::Ok)
+    }, "UPDATE_SEQ", &[])?;
     
     Ok(())
 }

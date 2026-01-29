@@ -53,4 +53,4 @@ mcp-bridge/
 .mcp/
 
 # Internal
-
+/docs/ai-guides/agent-accounts.md
