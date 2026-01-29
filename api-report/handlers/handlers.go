@@ -188,9 +188,24 @@ func GetLedger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 1. Try local
 	ledger, err := fetchLedger(seq)
+	if err == nil {
+		sendJSON(w, ledger)
+		return
+	}
+
+	// 2. Hydrate
+	log.Printf("Ledger %d not found locally. Fetching from Horizon...", seq)
+	if err := hydrateLedger(seq); err != nil {
+		sendError(w, fmt.Sprintf("Ledger hydration failed: %v", err), http.StatusNotFound)
+		return
+	}
+
+	// 3. Retry local
+	ledger, err = fetchLedger(seq)
 	if err != nil {
-		sendError(w, err.Error(), http.StatusNotFound)
+		sendError(w, "Ledger not found after hydration", http.StatusNotFound)
 		return
 	}
 
@@ -204,9 +219,24 @@ func GetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 1. Try local
 	tx, err := fetchTransaction(hash)
+	if err == nil {
+		sendJSON(w, tx)
+		return
+	}
+
+	// 2. Hydrate
+	log.Printf("Transaction %s not found locally. Fetching from Horizon...", hash)
+	if err := hydrateTransaction(hash); err != nil {
+		sendError(w, fmt.Sprintf("Transaction hydration failed: %v", err), http.StatusNotFound)
+		return
+	}
+
+	// 3. Retry local
+	tx, err = fetchTransaction(hash)
 	if err != nil {
-		sendError(w, err.Error(), http.StatusNotFound)
+		sendError(w, "Transaction not found after hydration", http.StatusNotFound)
 		return
 	}
 
@@ -255,7 +285,6 @@ func hydrateAccount(accountID string) error {
 	}
 
 	// 2. Persist to YottaDB via Transaction (Atomic write)
-	// Transaction signature: (transID string, localsToRestore []string, callback func() int) bool
 	ok := ydbConn.Transaction("", nil, func() int {
 		accountNode := ydbConn.Node("^Account", accountID)
 
@@ -274,19 +303,81 @@ func hydrateAccount(accountID string) error {
 			}
 		}
 		accountNode.Child("seq_num").Set(hAccount.Sequence)
-		accountNode.Child("last_modified").Set(time.Now().Unix()) // Best effort for cache
+		accountNode.Child("last_modified").Set(time.Now().Unix())
 
-		// Mark as Tracked for Sparse History (In case api-go needs to know)
+		// Mark as Tracked for Sparse History
 		ydbConn.Node("^Tracked", accountID).Set("1")
 
 		return yottadb.YDB_OK
 	})
 
 	if !ok {
-		return fmt.Errorf("yottadb transaction failed or was rolled back")
+		return fmt.Errorf("yottadb transaction failed")
 	}
 
 	log.Printf("Successfully hydrated account %s (Seq: %d)", accountID, hAccount.Sequence)
+	return nil
+}
+
+// hydrateLedger fetches a ledger from Horizon and persists to YottaDB
+func hydrateLedger(seq int64) error {
+	hLedger, err := hzClient.LedgerDetail(uint32(seq))
+	if err != nil {
+		return fmt.Errorf("horizon error: %v", err)
+	}
+
+	seqStr := strconv.FormatInt(seq, 10)
+	ok := ydbConn.Transaction("", nil, func() int {
+		ledgerNode := ydbConn.Node("^Stellar", "ledger", seqStr)
+		ledgerNode.Child("closed_at").Set(hLedger.ClosedAt.String())
+
+		// We don't hydrate all transactions for a ledger by default to save space,
+		// but we update the latest pointer if this is newer
+		latestSeqStr := ydbConn.Node("^Stellar", "latest").Get("0")
+		latestSeq, _ := strconv.ParseInt(latestSeqStr, 10, 64)
+		if seq > latestSeq {
+			ydbConn.Node("^Stellar", "latest").Set(seqStr)
+		}
+
+		return yottadb.YDB_OK
+	})
+
+	if !ok {
+		return fmt.Errorf("yottadb transaction failed")
+	}
+
+	return nil
+}
+
+// hydrateTransaction fetches a transaction from Horizon and persists to YottaDB
+func hydrateTransaction(hash string) error {
+	hTx, err := hzClient.TransactionDetail(hash)
+	if err != nil {
+		return fmt.Errorf("horizon error: %v", err)
+	}
+
+	seqStr := strconv.FormatInt(int64(hTx.Ledger), 10)
+	ok := ydbConn.Transaction("", nil, func() int {
+		// Store transaction in the ledger tree
+		// We need an index since we store by position usually.
+		// For hydration, we'll use the hash directly as a key under tx if it's missing,
+		// or find a slot.
+		
+		// Actually, let's just use the hash index directly and store it.
+		ydbConn.Node("^Stellar", "tx_hash", hash).Set(seqStr)
+		
+		// Find a slot or use a special hydration slot
+		txNode := ydbConn.Node("^Stellar", "ledger", seqStr, "tx", "hydrated", hash)
+		txNode.Child("xdr").Set(hTx.EnvelopeXdr)
+		txNode.Child("hash").Set(hash)
+
+		return yottadb.YDB_OK
+	})
+
+	if !ok {
+		return fmt.Errorf("yottadb transaction failed")
+	}
+
 	return nil
 }
 
@@ -341,10 +432,13 @@ func fetchTrustlines(accountID string) ([]TrustlineResponse, error) {
 		return nil, nil
 	}
 
-	for assetNode := range root.Children() {
+	// v2 Children() uses a mutable node. Clone them to avoid corruption in nested loops.
+	for assetNodeMutable := range root.Children() {
+		assetNode := assetNodeMutable.Clone()
 		assetCode := assetNode.Subscripts()[len(assetNode.Subscripts())-1]
 		
-		for issuerNode := range assetNode.Children() {
+		for issuerNodeMutable := range assetNode.Children() {
+			issuerNode := issuerNodeMutable.Clone()
 			issuer := issuerNode.Subscripts()[len(issuerNode.Subscripts())-1]
 			balance := issuerNode.Child("balance").Get("0")
 			limit := issuerNode.Child("limit").Get("")
@@ -400,17 +494,27 @@ func fetchTransaction(hash string) (*TransactionResponse, error) {
 		return nil, fmt.Errorf("transaction not found locally")
 	}
 
-	// We have the ledger sequence, we can find the transaction
+	// 2. Try the normal ledger index (pos)
+	lSeq, _ := strconv.ParseInt(seqStr, 10, 64)
 	ledgerNode := ydbConn.Node("^Stellar", "ledger", seqStr, "tx")
 	for txSub := range ledgerNode.Children() {
 		if txSub.Child("hash").Get("") == hash {
-			lSeq, _ := strconv.ParseInt(seqStr, 10, 64)
 			return &TransactionResponse{
 				Hash:      hash,
 				LedgerSeq: lSeq,
 				XDR:       txSub.Child("xdr").Get(""),
 			}, nil
 		}
+	}
+
+	// 3. Try the hydrated slot
+	hydratedNode := ydbConn.Node("^Stellar", "ledger", seqStr, "tx", "hydrated", hash)
+	if hydratedNode.HasTree() || hydratedNode.HasValue() {
+		return &TransactionResponse{
+			Hash:      hash,
+			LedgerSeq: lSeq,
+			XDR:       hydratedNode.Child("xdr").Get(""),
+		}, nil
 	}
 
 	return nil, fmt.Errorf("transaction hash index exists but record missing")
