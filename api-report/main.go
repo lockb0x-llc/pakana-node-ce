@@ -104,10 +104,14 @@ func main() {
 			}
 		}
 
-		// Fallback to index.html for SPA routing (if not an API call)
-		// API calls appearing here likely mean 404 (since we registered API routes first)
-		// But just in case, we only fallback for non-API-looking paths if desirable,
-		// or just always fallback for the frontend to handle 404s.
+
+		// Fallback to index.html for SPA routing
+		// BUT: Explicitly fail for /docs and /manual to prevent masking
+		if path == "/docs" || len(path) > 6 && path[:7] == "/manual" {
+			http.NotFound(w, req)
+			return
+		}
+
 		// Re-open index.html
 		f, err = distFS.Open("index.html")
 		if err != nil {
