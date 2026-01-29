@@ -446,7 +446,7 @@ pub fn apply_balance_updates(
         }
         Ok(yottadb::TransactionStatus::Ok)
     }, "APPLY_BALANCES", &[]).map_err(|e| {
-        yottadb::YDBError::from_str(&format!("{:?}", e))
+        yottadb::YDBError::from(&format!("{:?}", e))
     })?;
 
     Ok(updates)

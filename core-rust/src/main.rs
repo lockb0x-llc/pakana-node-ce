@@ -179,7 +179,7 @@ fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result
         
         Ok(yottadb::TransactionStatus::Ok)
     }, "UPDATE_SEQ", &[]).map_err(|e| {
-        yottadb::YDBError::from_str(&format!("{:?}", e))
+        yottadb::YDBError::from(&format!("{:?}", e))
     })?;
     
     Ok(())
