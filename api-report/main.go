@@ -25,8 +25,12 @@ func main() {
 	log.Println("Starting Pakana Reporting API...")
 
 	// Initialize YottaDB (Standard v2 pattern)
-	defer yottadb.Shutdown(yottadb.MustInit())
+	log.Println("[DEBUG] main: Calling yottadb.MustInit()")
+	dbHandle := yottadb.MustInit()
+	defer yottadb.Shutdown(dbHandle)
+	log.Println("[DEBUG] main: MustInit success, calling NewConn()")
 	conn := yottadb.NewConn()
+	log.Printf("[DEBUG] main: NewConn success: %p", conn)
 	handlers.InitYDB(conn)
 	handlers.InitHorizon()
 
@@ -71,6 +75,9 @@ func main() {
 		horizonURL = "https://horizon-testnet.stellar.org"
 	}
 	handlers.SetHorizonURL(horizonURL)
+
+	// Health check
+	r.HandleFunc("/ping", handlers.Ping).Methods("GET")
 
 	// Account endpoints
 	api.HandleFunc("/accounts/{id}", handlers.GetAccount).Methods("GET")
