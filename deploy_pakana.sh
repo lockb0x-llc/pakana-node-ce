@@ -240,27 +240,27 @@ export HOME=/root
 TARGET_DIR="/opt/pakana"
 mkdir -p \$TARGET_DIR
 
-if [ ! -d "$TARGET_DIR/.git" ]; then
-    echo "Cloning repository to $TARGET_DIR..."
+if [ ! -d "\$TARGET_DIR/.git" ]; then
+    echo "Cloning repository to \$TARGET_DIR..."
     git clone https://github.com/lockb0x-llc/pakana-node-ce.git \$TARGET_DIR
     
     # Configure git safety for the repo
     git config --global --add safe.directory \$TARGET_DIR
     
     # Switch to the requested branch for testing
-    cd $TARGET_DIR
+    cd \$TARGET_DIR
     git checkout ce-documentation-review
     
     # Ensure admin user owns it for SSH access convenience
-    chown -R $ADMIN_USER:$ADMIN_USER $TARGET_DIR
+    chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
 else
     echo "Repository already exists. Pulling latest changes..."
-    cd $TARGET_DIR
-    git config --global --add safe.directory $TARGET_DIR
+    cd \$TARGET_DIR
+    git config --global --add safe.directory \$TARGET_DIR
     git fetch
     git checkout ce-documentation-review
     git pull origin ce-documentation-review
-    chown -R $ADMIN_USER:$ADMIN_USER $TARGET_DIR
+    chown -R \$ADMIN_USER:\$ADMIN_USER \$TARGET_DIR
 fi
 
 echo "Configuring environment..."
