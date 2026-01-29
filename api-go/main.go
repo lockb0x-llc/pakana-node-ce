@@ -13,6 +13,12 @@ import (
 	"lang.yottadb.com/go/yottadb/v2"
 )
 
+func isTracked(conn *yottadb.Conn, accountID string) bool {
+	// Root of Sparse History: ^Tracked("G...") = 1
+	// If the global exists, we track it.
+	return conn.Node("^Tracked", accountID).HasValue()
+}
+
 // Pakana Ingestor: Streams ledgers from Stellar and persists to YottaDB
 func main() {
 	log.Println("Pakana API-Go Service Starting...")
@@ -94,6 +100,12 @@ func fetchAndPersistTransactions(conn *yottadb.Conn, client *horizonclient.Clien
 
 	txCount := 0
 	for _, tx := range txPage.Embedded.Records {
+		// Check Sparse History Filter
+		if !isTracked(conn, tx.Account) {
+			// Skip transactions from untracked accounts to maintain sparse history
+			continue
+		}
+
 		// Check BlockList
 		if isBlocked(tx.Account) {
 			log.Printf("Skipping blocked transaction from %s", tx.Account)

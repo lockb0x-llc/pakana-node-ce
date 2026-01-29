@@ -12,10 +12,10 @@ The system is now standardized on Go 1.24.0 and the modern YottaDB Go v2.x "Node
 
 ### Prohibited Operations
 
-- ❌ Do NOT use `yottadb.SetValE()` or any write functions
-- ❌ Do NOT persist data to YottaDB globals (`^Account`, `^Stellar`, etc.)
-- ❌ Do NOT launch goroutines that write to the database
-- ❌ Do NOT cache Horizon API responses in YottaDB
+- ❌ Do NOT use `yottadb.SetValE()`, `Set()`, `Delete()`, or any write functions.
+- ❌ Do NOT persist data to YottaDB globals (`^Account`, `^Stellar`, etc.).
+- ❌ Do NOT launch goroutines that write to the database.
+- ❌ Do NOT cache Horizon API responses in YottaDB. Any write from this service violates **shared memory safety** and can cause **YottaDB corruption** due to the process-level locking model.
 
 ### Allowed Operations
 

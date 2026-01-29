@@ -90,12 +90,13 @@ func StartInternalServer(conn *yottadb.Conn, client *horizonclient.Client) {
 				if assetCode == "" {
 					assetCode = bal.Asset.Type // fallback
 				}
-				conn.Node("^Account", req.AccountID, "trustlines", assetCode, "balance").Set(bal.Balance)
-				conn.Node("^Account", req.AccountID, "trustlines", assetCode, "limit").Set(bal.Limit)
+				// Standardized Schema: ^Account(req.AccountID, "trustlines", code, issuer, "balance")
+				conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "balance").Set(bal.Balance)
+				conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "limit").Set(bal.Limit)
 				// Verify
-				v := conn.Node("^Account", req.AccountID, "trustlines", assetCode, "balance").Get("")
+				v := conn.Node("^Account", req.AccountID, "trustlines", assetCode, bal.Issuer, "balance").Get("")
 				if v != bal.Balance {
-					log.Printf("ERROR: Trustline persistence failed for %s!", assetCode)
+					log.Printf("ERROR: Trustline persistence failed for %s:%s!", assetCode, bal.Issuer)
 				}
 			}
 		}
@@ -109,6 +110,9 @@ func StartInternalServer(conn *yottadb.Conn, client *horizonclient.Client) {
 		} else {
 			fmt.Printf("[DEBUG] YottaDB write verification successful for %s\n", req.AccountID)
 		}
+
+		// Mark as Tracked for Sparse History
+		conn.Node("^Tracked", req.AccountID).Set("1")
 
 		log.Printf("Hydrated account %s (Seq: %s)", req.AccountID, hAccount.Sequence)
 
