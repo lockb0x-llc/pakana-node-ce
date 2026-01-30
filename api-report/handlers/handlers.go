@@ -68,9 +68,11 @@ type TrustlineResponse struct {
 }
 
 type LedgerResponse struct {
-	Sequence int64  `json:"sequence"`
-	ClosedAt string `json:"closed_at"`
-	TxCount  int    `json:"tx_count"`
+	Sequence        int64  `json:"sequence"`
+	ClosedAt        string `json:"closed_at"`
+	TotalTxCount    int    `json:"total_tx_count"`
+	FilteredTxCount int    `json:"filtered_tx_count"`
+	TxCount         int    `json:"tx_count"` // Deprecated: use filtered_tx_count
 }
 
 type TransactionResponse struct {
@@ -361,6 +363,12 @@ func hydrateLedger(conn *yottadb.Conn, seq int64) error {
 	ok := conn.Transaction("", nil, func() int {
 		ledgerNode := conn.Node("^Stellar", "ledger", seqStr)
 		ledgerNode.Child("closed_at").Set(hLedger.ClosedAt.String())
+		
+		totalTx := hLedger.SuccessfulTransactionCount
+		if hLedger.FailedTransactionCount != nil {
+			totalTx += *hLedger.FailedTransactionCount
+		}
+		ledgerNode.Child("total_tx_count").Set(totalTx)
 
 		latestSeqStr := conn.Node("^Stellar", "latest").Get("0")
 		latestSeq, _ := strconv.ParseInt(latestSeqStr, 10, 64)
@@ -497,17 +505,24 @@ func fetchLedger(conn *yottadb.Conn, seq int64) (*LedgerResponse, error) {
 		return nil, fmt.Errorf("ledger %d not found", seq)
 	}
 
-	txCount := 0
-	txNode := ledgerNode.Child("tx", "").Next()
-	for txNode != nil {
-		txCount++
-		txNode = txNode.Next()
+	totalTxCount, _ := strconv.Atoi(ledgerNode.Child("total_tx_count").Get("0"))
+	filteredTxCount, _ := strconv.Atoi(ledgerNode.Child("filtered_tx_count").Get(""))
+
+	// Fallback for legacy data or if filtered_tx_count isn't explicitly stored
+	if filteredTxCount == 0 && ledgerNode.Child("filtered_tx_count").Get("") == "" {
+		txNode := ledgerNode.Child("tx", "").Next()
+		for txNode != nil {
+			filteredTxCount++
+			txNode = txNode.Next()
+		}
 	}
 
 	return &LedgerResponse{
-		Sequence: seq,
-		ClosedAt: closedAt,
-		TxCount:  txCount,
+		Sequence:        seq,
+		ClosedAt:        closedAt,
+		TotalTxCount:    totalTxCount,
+		FilteredTxCount: filteredTxCount,
+		TxCount:         filteredTxCount,
 	}, nil
 }
 

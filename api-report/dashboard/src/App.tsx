@@ -14,7 +14,8 @@ export default function App() {
     const [nodeStatus, setNodeStatus] = useState<'online' | 'offline'>('online');
     const [latestLedger, setLatestLedger] = useState<Ledger | null>(null);
     const [ledgerHistory, setLedgerHistory] = useState<Ledger[]>([]);
-    const [txVolumeHistory, setTxVolumeHistory] = useState<number[]>(new Array(15).fill(0));
+    const [totalVolumeHistory, setTotalVolumeHistory] = useState<number[]>(new Array(20).fill(0));
+    const [interestVolumeHistory, setInterestVolumeHistory] = useState<number[]>(new Array(20).fill(0));
     
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +84,15 @@ export default function App() {
             setNodeStatus('offline');
             isDemoMode.current = true;
             const prevSeq = latestLedger?.sequence || 549000;
-            return { sequence: prevSeq + 1, closed_at: new Date().toISOString(), tx_count: Math.floor(Math.random() * 15) };
+            const total = Math.floor(Math.random() * 50) + 5;
+            const filtered = Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
+            return { 
+                sequence: prevSeq + 1, 
+                closed_at: new Date().toISOString(), 
+                total_tx_count: total,
+                filtered_tx_count: filtered,
+                tx_count: filtered 
+            };
         }
     };
 
@@ -93,8 +102,13 @@ export default function App() {
             setLatestLedger(prev => {
                 if (prev && prev.sequence === data.sequence) return prev;
                 setLedgerHistory(hist => [data, ...hist].slice(0, 10));
-                setTxVolumeHistory(vol => [...vol.slice(1), data.tx_count]);
-                if (!prev || data.sequence % 10 === 0) addLog('INFO', `Ingested Ledger #${data.sequence} (${data.tx_count} txs)`);
+                setTotalVolumeHistory(vol => [...vol.slice(1), data.total_tx_count]);
+                setInterestVolumeHistory(vol => [...vol.slice(1), data.filtered_tx_count]);
+                
+                const displayCount = data.filtered_tx_count || 0;
+                if (!prev || data.sequence % 10 === 0) {
+                    addLog('INFO', `Ingested Ledger #${data.sequence} (${data.total_tx_count} total, ${displayCount} interest)`);
+                }
                 return data;
             });
         };
@@ -177,7 +191,8 @@ export default function App() {
             <main className="relative max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-6 sm:space-y-8">
                 <MetricsOverview 
                     latestLedger={latestLedger} 
-                    txVolumeHistory={txVolumeHistory} 
+                    totalVolumeHistory={totalVolumeHistory} 
+                    interestVolumeHistory={interestVolumeHistory}
                     ingestionStatus={ingestionStatus} 
                 />
 

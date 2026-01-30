@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useId } from 'react';
 
-export const TransactionSparkline = ({ data }: { data: number[] }) => {
+interface TransactionSparklineProps {
+    data: number[];
+    color?: string;
+}
+
+export const TransactionSparkline: React.FC<TransactionSparklineProps> = ({ 
+    data, 
+    color = "#10b981" 
+}) => {
     const height = 40;
     const width = 120;
+    const gradientId = useId();
     const max = Math.max(...data, 5);
     const min = 0;
+    
     const points = data.map((val, i) => {
         const x = (i / (data.length - 1)) * width;
         const y = height - ((val - min) / (max - min)) * height;
@@ -14,9 +24,9 @@ export const TransactionSparkline = ({ data }: { data: number[] }) => {
     return (
         <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
             <defs>
-                <linearGradient id="sparkGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.6" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+                    <stop offset="100%" stopColor={color} stopOpacity="0" />
                 </linearGradient>
             </defs>
             <path
@@ -25,14 +35,14 @@ export const TransactionSparkline = ({ data }: { data: number[] }) => {
                     const y = height - ((val - min) / (max - min)) * height;
                     return `L ${x},${y}`;
                 }).join(' ')} L ${width},${height} Z`}
-                fill="url(#sparkGradient)"
+                fill={`url(#${gradientId})`}
             />
-            <polyline fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
+            <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
             <circle
-                cx={(data.length - 1) / (data.length - 1) * width}
+                cx={width}
                 cy={height - ((data[data.length - 1] - min) / (max - min)) * height}
                 r="3"
-                fill="#10b981"
+                fill={color}
                 className="animate-pulse"
             />
         </svg>

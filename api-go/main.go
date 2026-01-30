@@ -71,8 +71,11 @@ func main() {
 		// 2. Atomic Write Block
 		ok := conn.Transaction("", nil, func() int {
 			// Write Header
-			conn.Node("^Stellar", "ledger", seqStr, "closed_at").Set(ledger.ClosedAt.String())
+			ledgerNode := conn.Node("^Stellar", "ledger", seqStr)
+			ledgerNode.Child("closed_at").Set(ledger.ClosedAt.String())
+			ledgerNode.Child("total_tx_count").Set(txCount)
 
+			filteredCount := 0
 			// Write Transactions
 			for i, tx := range txs {
 				// Sparse History Filter
@@ -80,14 +83,18 @@ func main() {
 					continue
 				}
 
+				filteredCount++
 				idxStr := fmt.Sprintf("%d", i)
-				txNode := conn.Node("^Stellar", "ledger", seqStr, "tx", idxStr)
+				txNode := ledgerNode.Child("tx", idxStr)
 				txNode.Child("xdr").Set(tx.EnvelopeXdr)
 				txNode.Child("hash").Set(tx.Hash)
 
 				// Index Hash -> Ledger Sequence (For Gap Detection)
 				conn.Node("^Stellar", "tx_hash", tx.Hash).Set(seqStr)
 			}
+
+			// Store the filtered count
+			ledgerNode.Child("filtered_tx_count").Set(filteredCount)
 
 			// Update ^Stellar("latest") = sequence (The atomic commit pointer)
 			conn.Node("^Stellar", "latest").Set(seqStr)
