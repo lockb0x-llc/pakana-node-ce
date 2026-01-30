@@ -120,3 +120,34 @@ SELECT * FROM ledgers ORDER BY sequence DESC LIMIT 10;
 ---
 
 *Part of the Lockb0x Sovereign Infrastructure Initiative.*
+
+## 9. Project Structure & Component Documentation
+
+Detailed documentation for each microservice is available in its respective directory:
+
+| Component | Description | Tech Stack | Documentation |
+| :--- | :--- | :--- | :--- |
+| **[api-go](./api-go/README.md)** | **Network Sentinel** | Go 1.24 | [Ingestor Guide](./api-go/README.md) |
+| **[core-rust](./core-rust/README.md)** | **The Validator** | Rust | [Validator Guide](./core-rust/README.md) |
+| **[api-report](./api-report/README.md)** | **Executive Dashboard** | Go/React | [API & UI Guide](./api-report/README.md) |
+| **[deploy](./deploy/README.md)** | **Infrastructure** | Bicep/Bash | [Appliance Guide](./deploy/README.md) |
+
+### File Layout
+```
+.
+├── api-go/             # Go ingestor service
+├── core-rust/          # Rust processor service
+├── api-report/         # Reporting API service
+│   └── dashboard/      # React frontend (Vite)
+├── deploy/             # Infrastructure (Bicep & Automation)
+├── docs/               # Architecture & Visual Assets (Videos)
+├── init.sql            # Octo SQL DDL
+├── docker-compose.yml  # Multi-service orchestration
+└── deploy_pakana.sh    # Unified Appliance Deployment Entrypoint
+```
+
+## 10. Multimedia Resources
+
+We provide visual aids to help understand the concepts:
+*   **[Deployment Analysis](./docs/deployment-analysis.html)**: Interactive report on the deployment process.
+*   **[Video Assets](./docs/assets/)**: Visualizations of the Go/Rust/YottaDB architecture.

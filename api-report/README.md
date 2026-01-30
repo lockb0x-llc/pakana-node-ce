@@ -1,12 +1,15 @@
-# API-Report Service (Reporting & Dashboard)
+# API-Report Service: The Executive Dashboard
 
-The Reporting service provides a consolidated REST API and a web-based dashboard for the Pakana Node.
+## Executive Summary
+The **api-report** service acts as the **"Control Tower"** for the Pakana Node. It delivers a read-only, real-time visualization of the node's sovereign state through a **Premium Cyberpunk Dashboard**.
+
+Designed for both technical operators and executive decision-makers, the dashboard combines **Glassmorphism** aesthetics with deep observability. It provides an immediate, high-contrast view of ledger health, transaction throughput, and asset distribution, all powered by a secure REST API.
 
 ## Purpose
-
-- Acts as a read-only projection of the YottaDB state.
-- Serves the React-based **Pakana Dashboard**.
-- Handles API Key authentication for programmatic access.
+Acts as the **Read-Only Projection** of the system, serving:
+1.  **The Dashboard**: A React/Vite/Tailwind SPA embedded in the binary.
+2.  **The API**: A secure REST interface for external systems to query the private ledger.
+3.  **Observability**: Real-time component health checks for the Go and Rust kernels.
 
 ## Features
 

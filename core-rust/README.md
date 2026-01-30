@@ -1,10 +1,15 @@
-# Core-Rust Service (Processor)
+# Core-Rust Service: The Validator
 
-Rust-based core processor for the Pakana private ledger.
+## Executive Summary
+The **core-rust** service is the mathematical heart of the Pakana Node. It serves as **"The Validator"**, responsible for enforcing business logic, cryptographic safety, and regulatory compliance on every transaction.
+
+Built on **Rust**, it leverages memory safety and zero-cost abstractions to process complex Stellar XDR envelopes at wire speed. It ensures that every asset transfer, account update, and trustline change adheres to the **Lockb0x Protocol** (IETF Draft) for Controllable Electronic Records (CER).
 
 ## Purpose
-
-Responsible for high-speed transaction validation, balance calculations, and ledger processing.
+Acts as the **State Processor** for the node, operating directly on the YottaDB shared memory segment to:
+1.  **Decode XDR**: Parses raw binary Stellar Protocol 24 envelopes.
+2.  **Enforce Rules**: Validates transaction preconditions (signatures, fees, sequence numbers).
+3.  **Commit State**: Updates account balances and metadata in `^Account` using strict atomic transactions.
 
 ## Current State
 

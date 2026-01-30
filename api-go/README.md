@@ -1,10 +1,15 @@
-# API-Go Service (Ingestor)
+# API-Go Service: The Network Sentinel
 
-Go-based service for ingesting Stellar network data into the Pakana private ledger.
+## Executive Summary
+The **api-go** service acts as the **"Network Sentinel"** for the Pakana Node. It is the high-performance ingress gateway that connects the sovereign private ledger to the public Stellar network.
+
+Its primary mission is **Ingestion and Persistence**. It streams live data from the global financial network, filters it for relevance to your organization, and writes it to the local **YottaDB** state store with ACID compliance. By writing directly to shared memory via CGo, it ensures that data is available to the Rust validator and the Dashboard in microseconds.
 
 ## Purpose
-
-Connects to Stellar Horizon and writes ledger headers and transaction metadata to YottaDB globals.
+Connects to Stellar Horizon and acts as the **Primary Writer** for the YottaDB state, handling:
+1.  **Ledger Ingestion**: Continuous streaming of blocks (ledgers) from Stellar Mainnet/Testnet.
+2.  **Historical Rehydration**: On-demand fetching of legacy account data for "Sparse History" support.
+3.  **Atomic Persistence**: Using YottaDB's `TpE()` (Transaction Processing) to ensure no data is ever partially written.
 
 ## Current State
 
