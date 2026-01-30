@@ -199,22 +199,23 @@ try:
     found_target = False
     
     for h in hosts:
-        host = h.get('Host')
-        type = h.get('Type')
+        host = h.get('Name') or h.get('Host') or "@"
+        rtype = h.get('Type')
         address = h.get('Address')
-        ttl = h.get('MXPref') # Namecheap uses MXPref field for some reason in getHosts? Actually, checking docs: MXPref or TTL?
-        # Docs say: Host, Type, Address, MXPref, TTL
-        print(f"[{type}] {host} -> {address}")
+        mxpref = h.get('MXPref', '10')
+        ttl = h.get('TTL', '1799')
+        
+        print(f"[{rtype}] {host} -> {address}")
         
         record = {
             'HostName': host,
-            'RecordType': type,
+            'RecordType': rtype,
             'Address': address,
-            'MXPref': h.get('MXPref', '10'),
-            'TTL': h.get('TTL', '1799')
+            'MXPref': mxpref,
+            'TTL': ttl
         }
         
-        if host == target_host and type == 'A':
+        if host == target_host and rtype == 'A':
             found_target = True
             record['Address'] = new_ip
         
