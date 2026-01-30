@@ -58,7 +58,7 @@ export const StateExplorer: React.FC<StateExplorerProps> = ({
                 {searchResult ? (
                     <div className="border-t border-slate-800/50 p-4 sm:p-6 space-y-4 animate-fade-in">
                         <div>
-                            <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Native Balance</span>
+                            <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Native Balance</span>
                             <div className="flex items-baseline space-x-2 mt-1">
                                 <span className="text-xl sm:text-2xl font-bold text-white font-mono">{searchResult.balance_xlm}</span>
                                 <span className="text-[10px] sm:text-xs text-emerald-500 font-bold">XLM</span>
@@ -67,18 +67,18 @@ export const StateExplorer: React.FC<StateExplorerProps> = ({
 
                         <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Sequence</span>
+                                <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Sequence</span>
                                 <p className="font-mono text-xs sm:text-sm text-slate-300 mt-1">{searchResult.seq_num}</p>
                             </div>
                             <div>
-                                <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Last Modified</span>
+                                <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Last Modified</span>
                                 <p className="font-mono text-xs sm:text-sm text-slate-300 mt-1">{searchResult.last_modified}</p>
                             </div>
                         </div>
 
                         {searchResult.trustlines && searchResult.trustlines.length > 0 && (
                             <div className="pt-2">
-                                <span className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Trustlines</span>
+                                <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Trustlines</span>
                                 <div className="mt-2 space-y-2">
                                     {searchResult.trustlines.map((tl, i) => (
                                         <div key={i} className="flex justify-between items-center text-xs sm:text-sm bg-slate-950/50 p-2 sm:p-2.5 rounded-lg border border-slate-800/50">

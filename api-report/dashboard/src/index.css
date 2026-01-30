@@ -43,8 +43,13 @@
   /* Glassmorphism card effect */
   .glass-card {
     @apply bg-slate-900/80 border border-slate-800/50 shadow-xl;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+  }
+
+  @media (min-width: 640px) {
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
   }
 
   /* Animated gradient border */
