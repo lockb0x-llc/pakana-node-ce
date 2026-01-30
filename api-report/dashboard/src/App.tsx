@@ -179,11 +179,12 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-[100dvh] bg-slate-950 text-slate-200 font-sans selection:bg-emerald-500/30">
+        <div className="min-h-[100dvh] bg-[#0B1121] text-slate-200 font-sans selection:bg-emerald-500/30 overflow-x-hidden">
             {/* Background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl opacity-50" />
-                <div className="absolute top-1/2 -left-40 w-96 h-96 bg-slate-800/50 rounded-full blur-3xl opacity-50" />
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl opacity-60 animate-pulse" />
+                <div className="absolute top-1/2 -left-40 w-[30rem] h-[30rem] bg-indigo-600/20 rounded-full blur-3xl opacity-60" />
+                <div className="absolute bottom-0 right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl opacity-40" />
             </div>
 
             <Navbar nodeStatus={nodeStatus} isDemoMode={isDemoMode.current} />

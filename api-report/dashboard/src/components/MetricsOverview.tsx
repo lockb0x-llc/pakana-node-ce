@@ -21,7 +21,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <Card animate className="relative overflow-hidden group col-span-1">
-                <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-30 transition-opacity">
                     <Box className="w-10 h-10 sm:w-16 sm:h-16 text-emerald-400" />
                 </div>
                 <div className="space-y-1">
@@ -51,7 +51,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
                 </div>
             </Card>
 
-            <Card animate className="animation-delay-150 border-blue-500/20 bg-blue-500/[0.02]">
+            <Card animate className="animation-delay-150 border-blue-500/30 bg-blue-600/[0.05]">
                 <div className="flex justify-between items-start mb-2">
                     <p className="text-[10px] sm:text-sm font-medium text-blue-400 font-mono uppercase">Interest TX</p>
                     <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />

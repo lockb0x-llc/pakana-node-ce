@@ -54,7 +54,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-slate-400 hidden sm:table-cell">
                                                 {new Date(ledger.closed_at).toISOString().split('T')[1].replace('Z', '').split('.')[0]}
                                             </td>
-                                            <td className="px-3 sm:px-6 py-2 sm:py-3 text-slate-600 text-[10px] sm:text-xs hidden md:table-cell">
+                                            <td className="px-3 sm:px-6 py-2 sm:py-3 text-slate-400 text-[10px] sm:text-xs hidden md:table-cell">
                                                 {pseudoHash}...
                                             </td>
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-right">
