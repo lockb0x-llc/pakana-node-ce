@@ -8,7 +8,7 @@ interface SystemLogProps {
 
 export const SystemLog: React.FC<SystemLogProps> = ({ logs }) => {
     return (
-        <div className="space-y-3 sm:space-y-4">
+        <div data-component-id="SystemLog" className="space-y-3 sm:space-y-4">
             <h3 className="text-base sm:text-lg font-medium text-white flex items-center space-x-2">
                 <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
                 <span>System Event Log</span>

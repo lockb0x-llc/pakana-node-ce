@@ -100,6 +100,7 @@ fn main() {
 /// Process all transactions in a given ledger by iterating ^Stellar("ledger", seq, "tx", *)
 fn process_ledger_transactions(ctx: &Context, sequence_str: &str) {
     let mut tx_count = 0;
+    let mut filtered_tx_count = 0;
     let mut tx_idx = 0;
     let ledger_seq: i64 = sequence_str.parse().unwrap_or(0);
 
@@ -137,13 +138,32 @@ fn process_ledger_transactions(ctx: &Context, sequence_str: &str) {
 
                                 // Phase 4: Calculate and apply balance deltas
                                 let deltas = balance::calculate_balance_deltas(&envelope);
-                                match balance::apply_balance_updates(ctx, &deltas, ledger_seq) {
-                                    Ok(count) => {
-                                        if count > 0 {
-                                            info!("  💰 Applied {} balance updates", count);
-                                        }
+                                
+                                // INTEREST LOGIC: Check if any involved account is tracked
+                                let mut interest = false;
+                                for delta in &deltas {
+                                    // Check ^Tracked(account_id)
+                                    let mut tracked_key = KeyContext::variable(ctx, "^Tracked");
+                                    tracked_key.push(delta.account_id.as_bytes().to_vec());
+                                    // If we can get the value, it's tracked.
+                                    if tracked_key.get().is_ok() {
+                                        interest = true;
+                                        break;
                                     }
-                                    Err(e) => warn!("  Error applying balance updates: {:?}", e),
+                                }
+
+                                if interest {
+                                    filtered_tx_count += 1;
+                                    // If interesting, apply balance updates (Sparse Mode)
+                                    // Note: If we want to track EVERYTHING for tracked accounts, we apply here.
+                                    match balance::apply_balance_updates(ctx, &deltas, ledger_seq) {
+                                        Ok(count) => {
+                                            if count > 0 {
+                                                info!("  💰 Applied {} balance updates", count);
+                                            }
+                                        }
+                                        Err(e) => warn!("  Error applying balance updates: {:?}", e),
+                                    }
                                 }
                             }
                             Err(e) => warn!("  Transaction {} validation failed: {:?}", tx_idx, e),
@@ -163,7 +183,17 @@ fn process_ledger_transactions(ctx: &Context, sequence_str: &str) {
     }
 
     if tx_count > 0 {
-        info!("  Processed {} transactions for ledger {}", tx_count, sequence_str);
+        info!("  Processed {} transactions for ledger {} (Interesting: {})", tx_count, sequence_str, filtered_tx_count);
+        
+        // Update ^Stellar("ledger", seq, "filtered_tx_count") = filtered_tx_count
+        let mut filtered_count_key = KeyContext::variable(ctx, "^Stellar");
+        filtered_count_key.push(b"ledger".to_vec());
+        filtered_count_key.push(sequence_str.as_bytes().to_vec());
+        filtered_count_key.push(b"filtered_tx_count".to_vec());
+        
+        if let Err(e) = filtered_count_key.set(filtered_tx_count.to_string().as_bytes()) {
+            warn!("Failed to update filtered_tx_count: {:?}", e);
+        }
     }
 }
 

@@ -138,3 +138,37 @@
     animation-delay: 400ms;
   }
 }
+
+/* 
+  Agentic Component Visualization 
+  Enables hover-to-identify for agent tools & debugging.
+*/
+/* 
+  Agentic Component Visualization 
+  Enables hover-to-identify for agent tools & debugging.
+  Only active when body has class 'debug-mode'.
+*/
+body.debug-mode [data-component-id]:hover {
+  outline: 2px dashed #d946ef !important; /* Fuchsia-500 */
+  outline-offset: -2px;
+  cursor: help;
+}
+
+body.debug-mode [data-component-id]:not(svg):hover::after {
+  content: attr(data-component-id);
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #d946ef;
+  color: white;
+  font-family: monospace;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 6px;
+  z-index: 10000;
+  pointer-events: none;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  border-bottom-right-radius: 4px;
+}

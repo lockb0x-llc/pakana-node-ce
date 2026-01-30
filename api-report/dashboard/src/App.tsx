@@ -60,6 +60,15 @@ export default function App() {
         addLog('INFO', 'Analytics disabled by user');
     };
 
+    // --- Debug Mode ---
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('debug') === 'true') {
+            document.body.classList.add('debug-mode');
+            addLog('INFO', 'Diagnostic Mode Enabled');
+        }
+    }, [addLog]);
+
     // --- Derived State ---
     const ingestionStatus = React.useMemo(() => {
         if (!latestLedger) return 'unknown';

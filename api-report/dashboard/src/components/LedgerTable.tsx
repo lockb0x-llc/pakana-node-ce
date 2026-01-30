@@ -9,7 +9,7 @@ interface LedgerTableProps {
 
 export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
     return (
-        <div className="space-y-4 sm:space-y-6">
+        <div data-component-id="LedgerTable" className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-base sm:text-lg font-medium text-white flex items-center space-x-2">
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />

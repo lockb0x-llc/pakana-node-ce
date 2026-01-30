@@ -22,7 +22,7 @@ export const TransactionSparkline: React.FC<TransactionSparklineProps> = ({
     }).join(' ');
     
     return (
-        <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+        <svg data-component-id="TransactionSparkline" width="100%" height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
             <defs>
                 <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor={color} stopOpacity="0.4" />

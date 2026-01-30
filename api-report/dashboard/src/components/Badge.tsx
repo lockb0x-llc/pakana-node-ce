@@ -13,7 +13,7 @@ export const Badge: React.FC<BadgeProps> = ({ type, children }) => {
         neutral: "bg-slate-800/50 text-slate-400 border-slate-700/50"
     };
     return (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-mono border ${colors[type]} transition-colors`}>
+        <span data-component-id="Badge" className={`px-2 py-0.5 rounded-full text-xs font-mono border ${colors[type]} transition-colors`}>
             {children}
         </span>
     );

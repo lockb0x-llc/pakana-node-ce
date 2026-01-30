@@ -13,6 +13,15 @@ param vmName string = 'pakana-ce-node'
 @description('Admin account.')
 param adminUsername string = 'pakanaadmin'
 
+@description('Git branch to deploy.')
+param branchName string = 'main'
+
+@description('Domain name for the node.')
+param domainName string = 'build.lockb0x.dev'
+
+@description('Admin email for SSL.')
+param adminEmail string = 'steven@thefirm.codes'
+
 @secure()
 @description('SSH Key or Password.')
 param adminPasswordOrKey string
@@ -131,9 +140,9 @@ runcmd:
   - echo "/dev/sdc /data ext4 defaults,noatime 0 0" >> /etc/fstab
   - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
   - usermod -aG docker {0}
-  - git clone https://github.com/lockb0x-llc/pakana-node-ce /opt/pakana
-  - cd /opt/pakana && bash ./deploy_pakana.sh
-''', adminUsername))
+  - git clone -b {1} https://github.com/lockb0x-llc/pakana-node-ce /opt/pakana
+  - cd /opt/pakana && export DOMAIN_NAME={2} && export ADMIN_EMAIL={3} && bash ./deploy_pakana.sh
+''', adminUsername, branchName, domainName, adminEmail))
     }
     storageProfile: {
       imageReference: {

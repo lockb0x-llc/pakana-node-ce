@@ -23,7 +23,7 @@ export const StateExplorer: React.FC<StateExplorerProps> = ({
     latestLedger 
 }) => {
     return (
-        <div className="space-y-4 sm:space-y-6">
+        <div data-component-id="StateExplorer" className="space-y-4 sm:space-y-6">
             <h3 className="text-base sm:text-lg font-medium text-white flex items-center space-x-2">
                 <Search className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
                 <span>State Explorer</span>
