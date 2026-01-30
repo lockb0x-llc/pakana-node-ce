@@ -150,3 +150,17 @@ api-report
 
 These are internal endpoints (not exposed externally) for service-to-service communication.
 
+---
+
+## UI & Dashboard (Cyberpunk Aesthetic)
+
+This service serves the **Pakana Dashboard**, which must adhere to a "Premium Cyberpunk" design system.
+
+### Design Directives:
+- **Glassmorphism**: Use `backdrop-blur-md` and semi-transparent backgrounds (`bg-slate-950/xx`).
+- **Neon Accents**: Use status-based neon shadows and borders (e.g., `shadow-[0_0_15px_rgba(16,185,129,0.2)]`).
+- **Interactive Tooltips**: All data displays (Metrics, Badges, Cards) MUST include descriptive tooltips (using the `Tooltip` component) explaining the underlying tech (e.g., explaining that "Validator Active" means the Rust core is applying XDR transitions via YottaDB TP).
+
+### Observability Architecture:
+- **Component IDs**: Every UI element MUST have a unique `data-component-id`. Format: `ComponentType-Identity` (e.g., `Card-LatestLedger`, `Badge-IngestionStatus`).
+- **Contextual Labels**: Use IDs that describe the *domain function* of the component, not its visual layout. This allows agents and humans to debug data flow instantly.

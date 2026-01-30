@@ -27,7 +27,18 @@ If the database seems "stuck":
 1.  Check `docker compose logs yottadb`.
 2.  Ensure no zombie processes are holding locks in `/data/tmp`.
 
-## 4. Documentation Strategy
+## 4. Appliance Deployment Automation
+*   **deploy_pakana.sh**: This is the single source of truth for "Appliance-First" deployment.
+*   **Infrastructure**: Provisions Azure resources (Compute Optimized, Premium SSD v2).
+*   **DNS**: Automatically handles Namecheap 'A' record updates using a robust "Read-Merge-Write" logic (Python-based XML parsing).
+*   **Idempotency**: All setup steps (disk mounting, kernel tuning, docker installation) must remain idempotent.
+
+## 5. Dashboard Aesthetics & Observability
+*   **Cyberpunk UI**: Standardized on glassmorphism, high-contrast neon styling, and `backdrop-blur`.
+*   **Component IDs**: Mandatory `data-component-id` tagging on all interactive elements.
+*   **Tooltips**: Use the [Tooltip.tsx](../api-report/dashboard/src/components/Tooltip.tsx) component for context-aware technical descriptions.
+
+## 6. Documentation Strategy
 *   **User-Facing**: `README.md`, `TECHNICAL_MANUAL.md`.
-*   **Internal**: This file, `LOG.md`.
-*   **Tone**: Professional, technical, open-source community focus.
+*   **Agent-Facing**: `docs/ai-guides/AGENT_ROOT.md` and service-specific `AGENT_*.md` files.
+*   **Tone**: Professional, technical, "Systems Architect" focus.

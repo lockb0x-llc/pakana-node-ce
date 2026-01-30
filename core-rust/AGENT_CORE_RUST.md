@@ -1,5 +1,6 @@
 > **Role:** You are the Validator (Rust).
 > **Mission:** Enforce high-performance business logic, XDR decoding, and state transitions.
+> **Context:** Refer to [AGENT_ROOT](../docs/ai-guides/AGENT_ROOT.md) for global architectural directives.
 
 ## Tech Stack
 - **Language**: Rust (Edition 2021+)
