@@ -257,9 +257,9 @@ PYEOF
             if [[ $PY_OUTPUT == ERROR* ]]; then
                 echo -e "${RED}$PY_OUTPUT${NC}"
             else
-                echo "$PY_OUTPUT" | sed '/--- PARAMS_START ---/q' | head -n -1
+                echo "$PY_OUTPUT" | sed '/--- PARAMS_START ---/q' | sed '$d'
                 
-                SET_PARAMS=$(echo "$PY_OUTPUT" | sed -n '/--- PARAMS_START ---/,//p' | tail -n +2)
+                SET_PARAMS=$(echo "$PY_OUTPUT" | sed -n '/--- PARAMS_START ---/,$p' | sed '1d')
                 
                 echo ""
                 read -p "Apply these changes to Namecheap DNS? (y/N): " CONFIRM_DNS
@@ -284,6 +284,7 @@ fi
 
 SSH_CMD="ssh $ADMIN_USER@$HOSTNAME"
 
+echo ""
 echo "VM Public IP: $IP_ADDRESS"
 echo "VM Hostname: $HOSTNAME"
 echo ""
