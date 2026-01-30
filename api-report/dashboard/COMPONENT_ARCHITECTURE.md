@@ -25,20 +25,23 @@ graph TD
     Main --> MetricsOverview
     Main --> ContentGrid[Content Grid]
 
-    MetricsOverview --> Card_Metrics[Card (x4)]
-    Card_Metrics --> TransactionSparkline
-    Card_Metrics --> Badge_Status[Badge]
+    MetricsOverview --> Card_Ledger[Card-LatestLedger]
+    MetricsOverview --> Card_TX[Card-TotalTX]
+    MetricsOverview --> Card_Status[Card-ValidatorStatus]
+    MetricsOverview --> Card_DB[Card-DatabaseStatus]
+    
+    Card_Status --> Badge_Core[Badge-CoreStatus]
+    Card_Status --> Badge_Ingest[Badge-IngestionStatus]
 
     ContentGrid --> LeftCol[Left Column]
     ContentGrid --> RightCol[Right Column]
 
     LeftCol --> LedgerTable
     LeftCol --> SystemLog
-    LedgerTable --> Badge_Proto[Badge]
+    LedgerTable --> Badge_Proto[Badge-ProtocolVersion]
 
     RightCol --> StateExplorer
-    StateExplorer --> Card_Search[Card]
-    StateExplorer --> Badge_Result[Badge? (Indirect)]
+    StateExplorer --> Card_Search[Card-AccountSearch]
 ```
 
 ## Component ID Reference
@@ -47,10 +50,10 @@ graph TD
 | :--- | :--- | :--- |
 | `Navbar.tsx` | `Navbar` | Top navigation bar containing status and clock. |
 | `DigitalClock.tsx` | `DigitalClock` | Displays the current server time (UTC/Local). |
-| `MetricsOverview.tsx` | `MetricsOverview` | Grid of 4 cards showing high-level stats (Ledger, TXs, Validator, DB). |
-| `Card.tsx` | `Card` | Generic glassmorphism container used by Metrics and Explorer. |
+| `MetricsOverview.tsx` | `MetricsOverview` | Grid showing high-level stats. |
+| `Card.tsx` | `Card-{dataId}` | Contextual glassmorphism container (e.g., `Card-LatestLedger`). |
 | `TransactionSparkline.tsx` | `TransactionSparkline` | SVG sparkline chart for transaction volume. |
-| `Badge.tsx` | `Badge` | Status indicators (Success, Warning, Neutral). |
+| `Badge.tsx` | `Badge-{dataId}` | Contextual status indicators (e.g., `Badge-CoreStatus`). |
 | `LedgerTable.tsx` | `LedgerTable` | The live scrolling list of recent ledgers. |
 | `SystemLog.tsx` | `SystemLog` | Terminal-like log viewer for system events. |
 | `StateExplorer.tsx` | `StateExplorer` | Search interface for querying Account/Transaction state. |

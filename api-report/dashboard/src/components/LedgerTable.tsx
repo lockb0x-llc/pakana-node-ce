@@ -15,7 +15,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
                     <span>Live Ledger Stream</span>
                 </h3>
-                <Badge type="neutral">PROTOCOL 24</Badge>
+                <Badge dataId="ProtocolVersion" type="neutral">PROTOCOL 24</Badge>
             </div>
 
             {/* Fixed height scrollable table - 30vh */}

@@ -20,7 +20,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 }) => {
     return (
         <div data-component-id="MetricsOverview" className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <Card animate className="relative overflow-hidden group col-span-1">
+            <Card dataId="LatestLedger" animate className="relative overflow-hidden group col-span-1">
                 <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-30 transition-opacity">
                     <Box className="w-10 h-10 sm:w-16 sm:h-16 text-emerald-400" />
                 </div>
@@ -37,7 +37,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
                 </div>
             </Card>
 
-            <Card animate className="animation-delay-100">
+            <Card dataId="TotalTX" animate className="animation-delay-100">
                 <div className="flex justify-between items-start mb-2">
                     <p className="text-[10px] sm:text-sm font-medium text-slate-400 font-mono uppercase">Total TX</p>
                     <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />
@@ -51,7 +51,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
                 </div>
             </Card>
 
-            <Card animate className="animation-delay-150 border-blue-500/30 bg-blue-600/[0.05]">
+            <Card dataId="InterestTX" animate className="animation-delay-150 border-blue-500/30 bg-blue-600/[0.05]">
                 <div className="flex justify-between items-start mb-2">
                     <p className="text-[10px] sm:text-sm font-medium text-blue-400 font-mono uppercase">Interest TX</p>
                     <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
@@ -65,7 +65,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
                 </div>
             </Card>
 
-            <Card animate className="animation-delay-200">
+            <Card dataId="ValidatorStatus" animate className="animation-delay-200">
                 <div className="flex justify-between items-start mb-2 sm:mb-4">
                     <p className="text-[10px] sm:text-sm font-medium text-slate-400 font-mono uppercase">Validator</p>
                     <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />
@@ -73,22 +73,22 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
                 <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex justify-between items-center text-xs sm:text-sm">
                         <span className="text-slate-400">Core-Rust</span>
-                        <Badge type="success">ACTIVE</Badge>
+                        <Badge dataId="CoreStatus" type="success">ACTIVE</Badge>
                     </div>
                     <div className="flex justify-between items-center text-xs sm:text-sm">
                         <span className="text-slate-400">Api-Go</span>
                         {ingestionStatus === 'healthy' ? (
-                            <Badge type="success">INGESTING</Badge>
+                            <Badge dataId="IngestionStatus" type="success">INGESTING</Badge>
                         ) : ingestionStatus === 'stalled' ? (
-                            <Badge type="warning">STALLED</Badge>
+                            <Badge dataId="IngestionStatus" type="warning">STALLED</Badge>
                         ) : (
-                            <Badge type="neutral">WAITING</Badge>
+                            <Badge dataId="IngestionStatus" type="neutral">WAITING</Badge>
                         )}
                     </div>
                 </div>
             </Card>
 
-            <Card animate className="animation-delay-300">
+            <Card dataId="DatabaseStatus" animate className="animation-delay-300">
                 <div className="flex justify-between items-start mb-2 sm:mb-4">
                     <p className="text-[10px] sm:text-sm font-medium text-slate-400 font-mono uppercase">Database</p>
                     <Database className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />

@@ -29,7 +29,7 @@ export const StateExplorer: React.FC<StateExplorerProps> = ({
                 <span>State Explorer</span>
             </h3>
 
-            <Card className="p-0 overflow-hidden gradient-border">
+            <Card dataId="AccountSearch" className="p-0 overflow-hidden gradient-border">
                 <div className="p-4 sm:p-6 bg-slate-900/50">
                     <form onSubmit={handleSearch} className="relative">
                         <input

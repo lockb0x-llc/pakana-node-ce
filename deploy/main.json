@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "10402579780704289980"
+      "templateHash": "11308283622220572335"
     }
   },
   "parameters": {
@@ -28,6 +28,27 @@
       "defaultValue": "pakanaadmin",
       "metadata": {
         "description": "Admin account."
+      }
+    },
+    "branchName": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "Git branch to deploy."
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "build.lockb0x.dev",
+      "metadata": {
+        "description": "Domain name for the node."
+      }
+    },
+    "adminEmail": {
+      "type": "string",
+      "defaultValue": "steven@thefirm.codes",
+      "metadata": {
+        "description": "Admin email for SSL."
       }
     },
     "adminPasswordOrKey": {
@@ -163,7 +184,7 @@
               ]
             }
           },
-          "customData": "[base64(format('#cloud-config\nruncmd:\n  - mkdir -p /data\n  - mkfs.ext4 /dev/sdc\n  - mount -o noatime /dev/sdc /data\n  - echo \"/dev/sdc /data ext4 defaults,noatime 0 0\" >> /etc/fstab\n  - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh\n  - usermod -aG docker {0}\n  - git clone https://github.com/lockb0x-llc/pakana-node-ce /opt/pakana\n  - cd /opt/pakana && bash ./deploy_pakana.sh\n', parameters('adminUsername')))]"
+          "customData": "[base64(format('#cloud-config\nruncmd:\n  - mkdir -p /data\n  - mkfs.ext4 /dev/sdc\n  - mount -o noatime /dev/sdc /data\n  - echo \"/dev/sdc /data ext4 defaults,noatime 0 0\" >> /etc/fstab\n  - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh\n  - usermod -aG docker {0}\n  - git clone -b {1} https://github.com/lockb0x-llc/pakana-node-ce /opt/pakana\n  - cd /opt/pakana && export DOMAIN_NAME={2} && export ADMIN_EMAIL={3} && bash ./deploy_pakana.sh\n', parameters('adminUsername'), parameters('branchName'), parameters('domainName'), parameters('adminEmail')))]"
         },
         "storageProfile": {
           "imageReference": {
