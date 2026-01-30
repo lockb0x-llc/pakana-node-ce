@@ -39,7 +39,7 @@ graph TD
     G -->|^Stellar Global| Y
     R -->|Monitor & Apply| Y
     Y -->|^Account & ^Ledger| A
-    A -->|Cyberpunk UI| C
+    A -->|Dashboard UI| C
     C -->|HTTPS/TLS| User((Technical Operator))
 
     G <-->|Shared Memory / IPC| R
