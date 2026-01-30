@@ -11,7 +11,7 @@ export const Navbar: React.FC<NavbarProps> = ({ nodeStatus, isDemoMode }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
-        <header className="border-b border-slate-800/50 bg-slate-950/90 backdrop-blur-lg sticky top-0 z-50">
+        <header data-component-id="Navbar" className="border-b border-slate-800/50 bg-slate-950/90 backdrop-blur-lg sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
                 <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="bg-emerald-500/10 p-1.5 sm:p-2 rounded-lg border border-emerald-500/20 glow-emerald">

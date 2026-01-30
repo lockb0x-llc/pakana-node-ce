@@ -11,7 +11,7 @@ export const DigitalClock = () => {
     }, []);
 
     return (
-        <span className="text-[10px] sm:text-xs font-mono text-slate-500 tabular-nums">
+        <span data-component-id="DigitalClock" className="text-[10px] sm:text-xs font-mono text-slate-500 tabular-nums">
             {time.toLocaleDateString('en-US', {
                 month: 'short',
                 day: '2-digit',

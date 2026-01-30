@@ -19,7 +19,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     ingestionStatus 
 }) => {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div data-component-id="MetricsOverview" className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <Card animate className="relative overflow-hidden group col-span-1">
                 <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <Box className="w-10 h-10 sm:w-16 sm:h-16 text-emerald-400" />
