@@ -33,12 +33,11 @@ if [ ! -z "$SUBSCRIPTION_ID" ]; then
     az account set --subscription "$SUBSCRIPTION_ID"
 fi
 
-    # Auto-generate unique RG name if not specified
-    if [ -z "$RG_NAME" ]; then
-        RG_NAME="rg-pakana-test-$(openssl rand -hex 3)"
-        echo "Using generated Resource Group: $RG_NAME"
-    fi
-done
+# Gather Resource Group Name (with default)
+read -p "Enter Resource Group Name (default: rg-pakana-node-ce-$(openssl rand -hex 3)): " RG_NAME_INPUT
+RG_NAME=${RG_NAME_INPUT:-"rg-pakana-node-ce-$(openssl rand -hex 3)"}
+echo "Using Resource Group: $RG_NAME"
+
 read -p "Enter Region (default: westus2): " LOCATION
 LOCATION=${LOCATION:-westus2}
 read -p "Enter Admin Username (default: pakanaadmin): " ADMIN_USER
@@ -86,8 +85,8 @@ fi
 
 read -p "Enter Domain Name (default: build.lockb0x.dev): " DOMAIN_NAME
 DOMAIN_NAME=${DOMAIN_NAME:-build.lockb0x.dev}
-read -p "Enter Target Branch (default: ui-pizzazz): " DEPLOY_BRANCH
-DEPLOY_BRANCH=${DEPLOY_BRANCH:-ui-pizzazz}
+read -p "Enter Target Branch (default: main): " DEPLOY_BRANCH
+DEPLOY_BRANCH=${DEPLOY_BRANCH:-main}
 read -p "Enter Admin Email (default: steven@thefirm.codes): " ADMIN_EMAIL
 ADMIN_EMAIL=${ADMIN_EMAIL:-steven@thefirm.codes}
 
