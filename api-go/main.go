@@ -13,12 +13,6 @@ import (
 	"lang.yottadb.com/go/yottadb/v2"
 )
 
-func isTracked(conn *yottadb.Conn, accountID string) bool {
-	// Root of Sparse History: ^Tracked("G...") = 1
-	// If the global exists, we track it.
-	return conn.Node("^Tracked", accountID).HasValue()
-}
-
 // Pakana Ingestor: Streams ledgers from Stellar and persists to YottaDB
 func main() {
 	log.Println("Pakana API-Go Service Starting...")
@@ -78,10 +72,8 @@ func main() {
 			filteredCount := 0
 			// Write Transactions
 			for i, tx := range txs {
-				// Sparse History Filter
-				if !isTracked(conn, tx.Account) || isBlocked(tx.Account) {
-					continue
-				}
+				// Sparse History Filter: REMOVED. Ingest everything.
+				// Core-Rust will filter for tracks.
 
 				filteredCount++
 				idxStr := fmt.Sprintf("%d", i)

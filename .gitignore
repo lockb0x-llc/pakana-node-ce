@@ -6,6 +6,7 @@ api-go/*.dll
 api-go/*.so
 api-go/*.dylib
 api-go/api-go
+api-go/tmp-go-cache/
 
 # Rust
 core-rust/target/
