@@ -38,7 +38,6 @@ fi
         RG_NAME="rg-pakana-test-$(openssl rand -hex 3)"
         echo "Using generated Resource Group: $RG_NAME"
     fi
-done
 read -p "Enter Region (default: westus2): " LOCATION
 LOCATION=${LOCATION:-westus2}
 read -p "Enter Admin Username (default: pakanaadmin): " ADMIN_USER
