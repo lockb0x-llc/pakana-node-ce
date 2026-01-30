@@ -33,17 +33,22 @@ if [ ! -z "$SUBSCRIPTION_ID" ]; then
     az account set --subscription "$SUBSCRIPTION_ID"
 fi
 
-while [[ -z "$RG_NAME" ]]; do
-    read -p "Enter Resource Group Name (e.g., rg-pakana-node): " RG_NAME
+    # Auto-generate unique RG name if not specified
+    if [ -z "$RG_NAME" ]; then
+        RG_NAME="rg-pakana-test-$(openssl rand -hex 3)"
+        echo "Using generated Resource Group: $RG_NAME"
+    fi
 done
-read -p "Enter Region (default: westus3): " LOCATION
-LOCATION=${LOCATION:-westus3}
+read -p "Enter Region (default: westus2): " LOCATION
+LOCATION=${LOCATION:-westus2}
 read -p "Enter Admin Username (default: pakanaadmin): " ADMIN_USER
 ADMIN_USER=${ADMIN_USER:-pakanaadmin}
 
 
 # SSH Key Handling
-if [ -f ~/.ssh/id_rsa.pub ]; then
+if [ -f ~/.ssh/id_pakana_deploy.pub ]; then
+    DEFAULT_SSH_KEY=$(cat ~/.ssh/id_pakana_deploy.pub)
+elif [ -f ~/.ssh/id_rsa.pub ]; then
     DEFAULT_SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
 elif [ -f ~/.ssh/id_ed25519.pub ]; then
     DEFAULT_SSH_KEY=$(cat ~/.ssh/id_ed25519.pub)
@@ -79,11 +84,12 @@ if [ -z "$SSH_KEY" ]; then
     exit 1
 fi
 
-read -p "Enter Domain Name (default: pakana.lockb0x.io): " DOMAIN_NAME
-DOMAIN_NAME=${DOMAIN_NAME:-pakana.lockb0x.io}
-read -p "Enter Target Branch (default: main): " DEPLOY_BRANCH
-DEPLOY_BRANCH=${DEPLOY_BRANCH:-main}
-read -p "Enter Admin Email (for SSL certificates): " ADMIN_EMAIL
+read -p "Enter Domain Name (default: build.lockb0x.dev): " DOMAIN_NAME
+DOMAIN_NAME=${DOMAIN_NAME:-build.lockb0x.dev}
+read -p "Enter Target Branch (default: ui-pizzazz): " DEPLOY_BRANCH
+DEPLOY_BRANCH=${DEPLOY_BRANCH:-ui-pizzazz}
+read -p "Enter Admin Email (default: steven@thefirm.codes): " ADMIN_EMAIL
+ADMIN_EMAIL=${ADMIN_EMAIL:-steven@thefirm.codes}
 
 # 3. Create Resource Group
 echo ""
