@@ -90,6 +90,16 @@ DEPLOY_BRANCH=${DEPLOY_BRANCH:-main}
 read -p "Enter Admin Email (default: steven@thefirm.codes): " ADMIN_EMAIL
 ADMIN_EMAIL=${ADMIN_EMAIL:-steven@thefirm.codes}
 
+echo ""
+echo -e "${GREEN}--- Namecheap DNS Automation (Optional) ---${NC}"
+echo "If provided, the script will automatically update the A record for the domain."
+read -p "Enter Namecheap API Key (leave empty to skip): " NC_API_KEY
+if [ ! -z "$NC_API_KEY" ]; then
+    read -p "Enter Namecheap Username: " NC_USERNAME
+    read -p "Enter Whitelisted Client IP (default: 66.10.231.68): " NC_CLIENT_IP
+    NC_CLIENT_IP=${NC_CLIENT_IP:-"66.10.231.68"}
+fi
+
 # 3. Create Resource Group
 echo ""
 echo -e "${BLUE}Creating Resource Group '$RG_NAME' in '$LOCATION'...${NC}"
@@ -127,6 +137,151 @@ echo ""
 echo -e "${GREEN}=== Infrastructure Deployed ===${NC}"
 IP_ADDRESS=$(az deployment group show --resource-group "$RG_NAME" --name main --query properties.outputs.publicIP.value -o tsv)
 HOSTNAME=$(az deployment group show --resource-group "$RG_NAME" --name main --query properties.outputs.fqdn.value -o tsv)
+
+# --- Namecheap DNS Update Logic ---
+if [ ! -z "$NC_API_KEY" ]; then
+    echo ""
+    echo -e "${BLUE}=== Automated DNS Update (Namecheap) ===${NC}"
+    
+    # Split domain name
+    # e.g. build.lockb0x.dev -> build, lockb0x, dev
+    # e.g. lockb0x.dev -> @, lockb0x, dev
+    IFS='.' read -ra ADDR <<< "$DOMAIN_NAME"
+    if [ ${#ADDR[@]} -eq 2 ]; then
+        NC_HOST="@"
+        NC_SLD=${ADDR[0]}
+        NC_TLD=${ADDR[1]}
+    elif [ ${#ADDR[@]} -eq 3 ]; then
+        NC_HOST=${ADDR[0]}
+        NC_SLD=${ADDR[1]}
+        NC_TLD=${ADDR[2]}
+    else
+        echo "WARNING: Complex domain structure detected ($DOMAIN_NAME). Manual DNS update required."
+        NC_API_KEY=""
+    fi
+
+    if [ ! -z "$NC_API_KEY" ]; then
+        echo "Fetching current host records for $DOMAIN_NAME..."
+        
+        # Use curl to fetch existing hosts
+        GET_HOSTS_URL="https://api.namecheap.com/xml.response?ApiUser=$NC_USERNAME&ApiKey=$NC_API_KEY&UserName=$NC_USERNAME&Command=namecheap.domains.dns.getHosts&ClientIp=$NC_CLIENT_IP&SLD=$NC_SLD&TLD=$NC_TLD"
+        RESPONSE_XML=$(curl -s "$GET_HOSTS_URL")
+        
+        if echo "$RESPONSE_XML" | grep -q "Status=\"ERROR\""; then
+            ERROR_MSG=$(echo "$RESPONSE_XML" | sed -n 's/.*<Error.*>\(.*\)<\/Error>.*/\1/p')
+            echo -e "${RED}Namecheap API Error: $ERROR_MSG${NC}"
+        else
+            # Python helper to parse XML, merge, and show snapshots
+            PYTHON_LOGIC=$(cat <<'PYEOF'
+import sys
+import xml.etree.ElementTree as ET
+from urllib.parse import urlencode
+
+xml_data = sys.stdin.read()
+target_host = sys.argv[1]
+new_ip = sys.argv[2]
+
+try:
+    root = ET.fromstring(xml_data)
+    namespace = {'ns': 'http://api.namecheap.com/xml.response'}
+    
+    # Find the CommandResponse section
+    command_response = root.find('.//ns:CommandResponse', namespace)
+    if command_response is None:
+        print("ERROR: Could not parse Namecheap response.")
+        sys.exit(1)
+        
+    domain_dns_get_hosts = command_response.find('.//ns:DomainDNSGetHostsResult', namespace)
+    hosts = domain_dns_get_hosts.findall('ns:host', namespace) if domain_dns_get_hosts is not None else []
+    
+    print("\n--- DNS Snapshot: BEFORE ---")
+    current_records = []
+    found_target = False
+    
+    for h in hosts:
+        host = h.get('Host')
+        type = h.get('Type')
+        address = h.get('Address')
+        ttl = h.get('MXPref') # Namecheap uses MXPref field for some reason in getHosts? Actually, checking docs: MXPref or TTL?
+        # Docs say: Host, Type, Address, MXPref, TTL
+        print(f"[{type}] {host} -> {address}")
+        
+        record = {
+            'HostName': host,
+            'RecordType': type,
+            'Address': address,
+            'MXPref': h.get('MXPref', '10'),
+            'TTL': h.get('TTL', '1799')
+        }
+        
+        if host == target_host and type == 'A':
+            found_target = True
+            record['Address'] = new_ip
+        
+        current_records.append(record)
+        
+    if not found_target:
+        current_records.append({
+            'HostName': target_host,
+            'RecordType': 'A',
+            'Address': new_ip,
+            'MXPref': '10',
+            'TTL': '1799'
+        })
+        
+    print("\n--- DNS Snapshot: PROJECTED AFTER ---")
+    for r in current_records:
+        marker = " [UPDATED]" if r['HostName'] == target_host else ""
+        print(f"[{r['RecordType']}] {r['HostName']} -> {r['Address']}{marker}")
+        
+    # Generate query string params for setHosts
+    params = {}
+    for i, r in enumerate(current_records, 1):
+        params[f'HostName{i}'] = r['HostName']
+        params[f'RecordType{i}'] = r['RecordType']
+        params[f'Address{i}'] = r['Address']
+        params[f'MXPref{i}'] = r['MXPref']
+        params[f'TTL{i}'] = r['TTL']
+        
+    print("\n--- PARAMS_START ---")
+    print(urlencode(params))
+    
+except Exception as e:
+    print(f"ERROR: Python parsing failed: {e}")
+    sys.exit(1)
+PYEOF
+)
+            # Run the python helper and capture output
+            PY_OUTPUT=$(echo "$RESPONSE_XML" | python3 -c "$PYTHON_LOGIC" "$NC_HOST" "$IP_ADDRESS")
+            
+            if [[ $PY_OUTPUT == ERROR* ]]; then
+                echo -e "${RED}$PY_OUTPUT${NC}"
+            else
+                echo "$PY_OUTPUT" | sed '/--- PARAMS_START ---/q' | head -n -1
+                
+                SET_PARAMS=$(echo "$PY_OUTPUT" | sed -n '/--- PARAMS_START ---/,//p' | tail -n +2)
+                
+                echo ""
+                read -p "Apply these changes to Namecheap DNS? (y/N): " CONFIRM_DNS
+                if [[ "$CONFIRM_DNS" =~ ^[Yy]$ ]]; then
+                    echo "Updating DNS records..."
+                    SET_HOSTS_URL="https://api.namecheap.com/xml.response?ApiUser=$NC_USERNAME&ApiKey=$NC_API_KEY&UserName=$NC_USERNAME&Command=namecheap.domains.dns.setHosts&ClientIp=$NC_CLIENT_IP&SLD=$NC_SLD&TLD=$NC_TLD&$SET_PARAMS"
+                    
+                    SET_RESPONSE=$(curl -s "$SET_HOSTS_URL")
+                    if echo "$SET_RESPONSE" | grep -q "Status=\"OK\""; then
+                        echo -e "${GREEN}DNS update successful! $DOMAIN_NAME now points to $IP_ADDRESS${NC}"
+                    else
+                        SET_ERROR=$(echo "$SET_RESPONSE" | sed -n 's/.*<Error.*>\(.*\)<\/Error>.*/\1/p')
+                        echo -e "${RED}Failed to update DNS: $SET_ERROR${NC}"
+                    fi
+                else
+                    echo "DNS update skipped."
+                fi
+            fi
+        fi
+    fi
+fi
+
 SSH_CMD="ssh $ADMIN_USER@$HOSTNAME"
 
 echo "VM Public IP: $IP_ADDRESS"
