@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock } from 'lucide-react';
 import { Ledger } from '../types';
 import { Badge } from './Badge';
+import { Card } from './Card';
 
 interface LedgerTableProps {
     history: Ledger[];
@@ -15,11 +16,21 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
                     <span>Live Ledger Stream</span>
                 </h3>
-                <Badge dataId="ProtocolVersion" type="neutral">PROTOCOL 24</Badge>
+                <Badge 
+                    dataId="ProtocolVersion" 
+                    type="neutral"
+                    description="The current Stellar Protocol version supported by this node. Version 24 supports high-performance smart transitions."
+                >
+                    PROTOCOL 24
+                </Badge>
             </div>
 
             {/* Fixed height scrollable table - 30vh */}
-            <div className="glass-card rounded-xl overflow-hidden">
+            <Card 
+                dataId="LedgerStream" 
+                className="p-0 overflow-hidden"
+                description="Real-time sequential feed of ledgers as they are closed and persisted to YottaDB."
+            >
                 <div className="max-h-[30vh] overflow-y-auto">
                     <table className="w-full text-left text-xs sm:text-sm">
                         <thead className="bg-slate-950/80 border-b border-slate-800/50 font-mono text-[10px] sm:text-xs text-slate-400 uppercase sticky top-0">
@@ -72,7 +83,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };
