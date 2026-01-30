@@ -56,12 +56,13 @@ graph TD
 ## 4. Current State (v1.1.0 - Hardened) 🚀
 
 - [x] **Hardened Ingestion**: Atomic YottaDB Transaction Processing (TP) across Go and Rust services.
-- [x] **Cyberpunk Dashboard**: Sleek, futuristic UI with real-time digital clock and status monitoring.
-- [x] **Contextual Tooltips**: On-hover technical descriptions for all major UI components (Card/Badge).
-- [x] **DNS Automation**: Integrated Namecheap API for safe "Read-Merge-Write" 'A' record updates.
+- [x] **Modern Dark-Themed Dashboard**: Sleek, futuristic UI with real-time digital clock and comprehensive appliance status monitoring.
+- [x] **Contextual Tooltips**: On-hover technical descriptions for all major UI components.
+- [x] **DNS Automation**: Integrated Namecheap API for safe "Read-Merge-Write" 'A' record DNS updates during node deployment (requires Namecheap API credentials).
 - [x] **Component Architecture**: Standardized `data-component-id` tagging for advanced observability.
 - [x] **XDR decoding**: Full Protocol 24 support in `core-rust` for asset and sequence tracking.
 - [x] **Operational Continuity**: Shared memory (`ipc: host`) architecture verified for high-concurrency.
+- [x] **Generative and Agentic AI Optimized**: Agentic AI documentation included in the `docs/ai-guides` directory and each service has Agentic AI documentation.
 
 ## 5. Deployment Instructions
 
@@ -86,7 +87,7 @@ graph TD
     - **Software Branch**: Deploy from `main` or a specific feature branch.
 
 3.  **Access Your Appliance**:
-    The script will output the VM IP, Hostname, and a direct link to your **Cyberpunk Dashboard**.
+    The script will output the VM IP, Hostname, and a direct link to your **Dashboard**.
     Default: `https://<your-domain>`
 
 ## 6. Development & Observability
