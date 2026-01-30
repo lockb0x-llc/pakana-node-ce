@@ -40,7 +40,7 @@ graph TD
     R -->|Monitor & Apply| Y
     Y -->|^Account & ^Ledger| A
     A -->|Dashboard UI| C
-    C -->|HTTPS/TLS| User((Technical Operator))
+    C -->|HTTPS/TLS| User((You))
 
     G <-->|Shared Memory / IPC| R
     R <-->|Shared Memory / IPC| Y
