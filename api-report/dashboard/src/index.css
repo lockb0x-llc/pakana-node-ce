@@ -172,3 +172,12 @@ body.debug-mode [data-component-id]:not(svg):hover::after {
   letter-spacing: normal;
   border-bottom-right-radius: 4px;
 }
+
+@keyframes tooltip-slide-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-tooltip-slide-up {
+  animation: tooltip-slide-up 0.15s ease-out forwards;
+}
