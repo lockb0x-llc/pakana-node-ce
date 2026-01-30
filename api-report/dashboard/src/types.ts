@@ -1,7 +1,9 @@
 export interface Ledger {
     sequence: number;
     closed_at: string;
-    tx_count: number;
+    total_tx_count: number;
+    filtered_tx_count: number;
+    tx_count: number; // Deprecated: use filtered_tx_count
 }
 
 export interface Trustline {

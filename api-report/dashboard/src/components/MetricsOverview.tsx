@@ -7,11 +7,17 @@ import { Ledger } from '../types';
 
 interface MetricsOverviewProps {
     latestLedger: Ledger | null;
-    txVolumeHistory: number[];
+    totalVolumeHistory: number[];
+    interestVolumeHistory: number[];
     ingestionStatus: 'healthy' | 'stalled' | 'unknown';
 }
 
-export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ latestLedger, txVolumeHistory, ingestionStatus }) => {
+export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ 
+    latestLedger, 
+    totalVolumeHistory, 
+    interestVolumeHistory,
+    ingestionStatus 
+}) => {
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <Card animate className="relative overflow-hidden group col-span-1">
@@ -33,15 +39,29 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ latestLedger, 
 
             <Card animate className="animation-delay-100">
                 <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] sm:text-sm font-medium text-slate-400 font-mono uppercase">TX Volume</p>
+                    <p className="text-[10px] sm:text-sm font-medium text-slate-400 font-mono uppercase">Total TX</p>
                     <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />
                 </div>
                 <div className="h-8 sm:h-10 flex items-end mb-1">
-                    <TransactionSparkline data={txVolumeHistory} />
+                    <TransactionSparkline data={totalVolumeHistory} color="#10b981" />
                 </div>
                 <div className="flex justify-between items-center text-[10px] sm:text-xs text-slate-500 font-mono">
-                    <span>0 TPS</span>
-                    <span>{Math.max(...txVolumeHistory)} MAX</span>
+                    <span className="text-emerald-500/80">Stellar Network</span>
+                    <span>{Math.max(...totalVolumeHistory)} MAX</span>
+                </div>
+            </Card>
+
+            <Card animate className="animation-delay-150 border-blue-500/20 bg-blue-500/[0.02]">
+                <div className="flex justify-between items-start mb-2">
+                    <p className="text-[10px] sm:text-sm font-medium text-blue-400 font-mono uppercase">Interest TX</p>
+                    <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                </div>
+                <div className="h-8 sm:h-10 flex items-end mb-1">
+                    <TransactionSparkline data={interestVolumeHistory} color="#3b82f6" />
+                </div>
+                <div className="flex justify-between items-center text-[10px] sm:text-xs text-slate-500 font-mono">
+                    <span className="text-blue-500/80">Tracked Accounts</span>
+                    <span>{Math.max(...interestVolumeHistory)} MAX</span>
                 </div>
             </Card>
 
