@@ -24,7 +24,7 @@ services:
 
   api-go:
     build:
-      context: ./api-go
+      context: ../api-go
     container_name: pakana-api-go
     hostname: pakana-node
     depends_on:
@@ -46,7 +46,7 @@ services:
 
   core-rust:
     build:
-      context: ./core-rust
+      context: ../core-rust
     container_name: pakana-core-rust
     hostname: pakana-node
     ipc: host
@@ -70,7 +70,7 @@ services:
 
   api-report:
     build:
-      context: ./api-report
+      context: ../api-report
     container_name: pakana-api-report
     hostname: pakana-node
     depends_on:
@@ -104,12 +104,14 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./docs:/data/docs:ro
+      - ../docs:/data/docs:ro
       - caddy-data:/data
       - caddy-config:/config
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME:-${PAKANA_DOMAIN:-build.lockb0x.dev}}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-${PAKANA_EMAIL:-steven@thefirm.codes}}
+      - PAKANA_STAGING=${PAKANA_STAGING:-false}
+      - PAKANA_ACME_CA=${PAKANA_ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
     depends_on:
       - api-report
 

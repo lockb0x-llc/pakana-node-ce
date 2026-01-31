@@ -38,7 +38,7 @@ The core data flow, known as the "Steel Thread," ensures end-to-end integrity fr
 -   **Configuration**:
     -   **Shared Memory**: `ipc: host` mode in Docker allows all containers to access the *exact same* memory segments.
     -   **Locking**: Shared `ydb_tmp=/data/tmp` ensures process locks are respected across container boundaries.
-    -   **SQL Mapping**: `init.sql` defines how the hierarchical globals (`^Account`) map to relational tables (`accounts`).
+    -   **SQL Mapping**: `deploy/init.sql` defines how the hierarchical globals (`^Account`) map to relational tables (`accounts`).
 
 ## 3. Security Model
 

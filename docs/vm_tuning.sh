@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Azure VM Tuning Script for Pakana Node
+This script's functionality is now integrated int he deploy_pakana.sh script.
+
 # Run with: sudo ./vm_tuning.sh
 
 echo "Applying kernel tuning..."

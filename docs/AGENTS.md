@@ -19,7 +19,7 @@
 ### Adding a New YottaDB Global
 If you need to store new data types:
 1.  **Define Structure**: `^MyGlobal({key1}, {key2}) = value`.
-2.  **Map to SQL (Optional)**: Update `init.sql` to `CREATE TABLE ... GLOBAL '^MyGlobal'`.
+2.  **Map to SQL (Optional)**: Update `deploy/init.sql` to `CREATE TABLE ... GLOBAL '^MyGlobal'`.
 3.  **Update Permission**: Ensure `yottadb.gld` allows the definition (usually covered by DEFAULT region).
 
 ### Debugging "Lock" Issues

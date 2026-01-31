@@ -141,9 +141,10 @@ Detailed documentation for each microservice is available in its respective dire
 ├── api-report/         # Reporting API service
 │   └── dashboard/      # React frontend (Vite)
 ├── deploy/             # Infrastructure (Bicep & Automation)
+│   ├── init.sql        # Octo SQL DDL
+│   ├── docker-compose.yml # Multi-service orchestration
+│   └── Caddyfile       # Reverse Proxy Config
 ├── docs/               # Architecture & Visual Assets (Videos)
-├── init.sql            # Octo SQL DDL
-├── docker-compose.yml  # Multi-service orchestration
 └── deploy_pakana.sh    # Unified Appliance Deployment Entrypoint
 ```
 

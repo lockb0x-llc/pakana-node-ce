@@ -91,6 +91,20 @@ read -p "Enter Admin Email (default: steven@thefirm.codes): " ADMIN_EMAIL
 ADMIN_EMAIL=${ADMIN_EMAIL:-steven@thefirm.codes}
 
 echo ""
+echo -e "${BLUE}--- Deployment Mode ---${NC}"
+echo "Staging mode uses Let's Encrypt Staging (untrusted, high rate limits). Use for dev/testing."
+read -p "Enable Staging Mode? (y/N): " STAGING_INPUT
+if [[ "$STAGING_INPUT" =~ ^[Yy]$ ]]; then
+    PAKANA_STAGING="true"
+    PAKANA_ACME_CA="https://acme-staging-v02.api.letsencrypt.org/directory"
+    echo "Staging Mode: ENABLED (Using Let's Encrypt Staging)"
+else
+    PAKANA_STAGING="false"
+    PAKANA_ACME_CA="https://acme-v02.api.letsencrypt.org/directory"
+    echo "Staging Mode: DISABLED (Production)"
+fi
+
+echo ""
 echo -e "${GREEN}--- Namecheap DNS Automation (Optional) ---${NC}"
 echo "If provided, the script will automatically update the A record for the domain."
 read -p "Enter Namecheap API Key (leave empty to skip): " NC_API_KEY
@@ -381,7 +395,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=/opt/pakana
+WorkingDirectory=/opt/pakana/deploy
 ExecStart=/usr/bin/docker compose up -d
 RemainAfterExit=yes
 TimeoutStartSec=0
@@ -443,13 +457,39 @@ fi
 echo "Configuring environment..."
 echo "DOMAIN_NAME=$DOMAIN_NAME" > \$TARGET_DIR/.env
 echo "ADMIN_EMAIL=$ADMIN_EMAIL" >> \$TARGET_DIR/.env
+echo "PAKANA_STAGING=$PAKANA_STAGING" >> \$TARGET_DIR/.env
+echo "PAKANA_ACME_CA=$PAKANA_ACME_CA" >> \$TARGET_DIR/.env
+
+# DNS Propagation Check
+echo "Checking DNS propagation for $DOMAIN_NAME (Target: $IP_ADDRESS)..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+DNS_READY=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    # Try to resolve IP. Use getent or dig if available.
+    RESOLVED_IP=\$(getent hosts $DOMAIN_NAME | awk '{print \$1}')
+    if [ "$IP_ADDRESS" == "\$RESOLVED_IP" ]; then
+        echo "DNS propagated successfully."
+        DNS_READY=true
+        break
+    fi
+    echo "Waiting for DNS... (Attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
+    sleep 10
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+
+if [ "$DNS_READY" = false ]; then
+    echo "WARNING: DNS did not propagate in time. Caddy might fail initial TLS validation."
+    echo "Proceeding anyway, Caddy will retry automatically."
+fi
 
 cd \$TARGET_DIR
 
 echo "Initializing YottaDB & SQL Schema..."
 # Use ephemeral container to initialize the DB files and SQL DDL
 docker run --rm -v pakana_yottadb-data:/data \
-  -v \$TARGET_DIR/init.sql:/init.sql \
+  -v \$TARGET_DIR/deploy/init.sql:/init.sql \
   -e ydb_dist=/opt/yottadb/current \
   -e ydb_gbldir=/data/r2.03_x86_64/g/yottadb.gld \
   -e ydb_rel=r2.03_x86_64 \
@@ -494,6 +534,7 @@ echo "Starting all services..."
 # Ensure permissions are correct before starting
 docker run --rm -v pakana_yottadb-data:/data alpine sh -c "chmod -R 777 /data"
 
+cd \$TARGET_DIR/deploy
 docker compose up -d --build
 
 echo "Bootstrap complete."
@@ -512,4 +553,4 @@ echo -e "${GREEN}=== Deployment & Setup Complete ===${NC}"
 echo "You can now connect to your node:"
 echo "$SSH_CMD"
 echo ""
-echo "To check logs: ssh $ADMIN_USER@$HOSTNAME 'cd /opt/pakana && docker compose logs -f'"
+echo "To check logs: ssh $ADMIN_USER@$HOSTNAME 'cd /opt/pakana/deploy && docker compose logs -f'"

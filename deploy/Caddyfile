@@ -4,6 +4,13 @@
 
 # Multi-Domain Appliance Configuration
 {$DOMAIN_NAME}, pakana-ce-76cbfa52.westus2.cloudapp.azure.com {
+    tls {
+        issuer acme {
+            ca {$PAKANA_ACME_CA}
+        }
+        issuer zerossl
+    }
+
     handle_path /manual* {
         root * /data/docs
         file_server
