@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /docs
+Allow: /assets/
+Disallow: /api/v1/
+Disallow: /.env
+Disallow: /docs/internal/
+Disallow: /.vscode/
+Disallow: /.idea/
+Disallow: /.agent/
+Disallow: /mcp-bridge/
+Disallow: /.mcp-cache/
+Disallow: /.mcp/
+Disallow: /tmp/
+Disallow: /api-go/tmp-go-cache/
+
+Sitemap: https://pakana.lockb0x.io/sitemap.xml

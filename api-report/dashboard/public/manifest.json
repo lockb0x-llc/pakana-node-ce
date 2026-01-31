@@ -1,0 +1,16 @@
+{
+  "short_name": "Pakana",
+  "name": "Pakana Node Dashboard",
+  "description": "Sovereign Ledger Monitoring and Governance Interface",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "display": "standalone",
+  "theme_color": "#020617"
+}
