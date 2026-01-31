@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/stellar/go v0.0.0-20251210100531-aab2ea4aca88
+	github.com/stellar/go-stellar-sdk v0.1.0
 	lang.yottadb.com/go/yottadb/v2 v2.0.1
 )
 

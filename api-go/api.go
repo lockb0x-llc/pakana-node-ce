@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go-stellar-sdk/clients/horizonclient"
 	"lang.yottadb.com/go/yottadb/v2"
 )
 

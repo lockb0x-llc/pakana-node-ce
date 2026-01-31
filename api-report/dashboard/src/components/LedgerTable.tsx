@@ -19,9 +19,9 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                 <Badge 
                     dataId="ProtocolVersion" 
                     type="neutral"
-                    description="The current Stellar Protocol version supported by this node. Version 24 supports high-performance smart transitions."
+                    description="The current Stellar Protocol version supported by this node. Protocol 25 (X-Ray) introduces native ZK primitives (BN254, Poseidon) for privacy and high-performance sovereign ledger operations."
                 >
-                    PROTOCOL 24
+                    PROTOCOL 25
                 </Badge>
             </div>
 
@@ -46,10 +46,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                                 <tr><td colSpan={4} className="px-3 sm:px-6 py-6 sm:py-8 text-center text-slate-500">Waiting for ledgers...</td></tr>
                             ) : (
                                 history.map((ledger, index) => {
-                                    // Deterministic placeholder hash to prevent flickering
-                                    const pseudoHash = Array.from(ledger.sequence.toString() + ledger.closed_at)
-                                        .reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)
-                                        .toString(16).padStart(12, '0').substring(0, 12);
+                                    const displayHash = ledger.hash ? ledger.hash.substring(0, 12) : 'Pending...';
 
                                     return (
                                         <tr
@@ -60,13 +57,31 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ history }) => {
                                             `}
                                         >
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-emerald-400 font-semibold">
-                                                #{ledger.sequence}
+                                                <a 
+                                                    href={`https://stellar.expert/explorer/testnet/ledger/${ledger.sequence}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:text-emerald-300 transition-colors"
+                                                >
+                                                    #{ledger.sequence}
+                                                </a>
                                             </td>
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-slate-400 hidden sm:table-cell">
                                                 {new Date(ledger.closed_at).toISOString().split('T')[1].replace('Z', '').split('.')[0]}
                                             </td>
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-slate-400 text-[10px] sm:text-xs hidden md:table-cell">
-                                                {pseudoHash}...
+                                                {ledger.hash ? (
+                                                    <a 
+                                                        href={`https://stellar.expert/explorer/testnet/ledger/${ledger.sequence}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:text-slate-300 transition-colors"
+                                                    >
+                                                        {displayHash}...
+                                                    </a>
+                                                ) : (
+                                                    <span>Pending...</span>
+                                                )}
                                             </td>
                                             <td className="px-3 sm:px-6 py-2 sm:py-3 text-right">
                                                 <span className={`

@@ -3,7 +3,7 @@ module github.com/lockb0x-llc/pakana-node-0/api-go
 go 1.24.0
 
 require (
-	github.com/stellar/go v0.0.0-20251210100531-aab2ea4aca88
+	github.com/stellar/go-stellar-sdk v0.1.0
 	lang.yottadb.com/go/yottadb/v2 v2.0.1
 )
 

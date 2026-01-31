@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/protocols/horizon"
+	"github.com/stellar/go-stellar-sdk/clients/horizonclient"
+	"github.com/stellar/go-stellar-sdk/protocols/horizon"
 	"lang.yottadb.com/go/yottadb/v2"
 )
 
@@ -67,6 +67,7 @@ func main() {
 			// Write Header
 			ledgerNode := conn.Node("^Stellar", "ledger", seqStr)
 			ledgerNode.Child("closed_at").Set(ledger.ClosedAt.String())
+			ledgerNode.Child("hash").Set(ledger.Hash)
 			ledgerNode.Child("total_tx_count").Set(txCount)
 
 			filteredCount := 0
