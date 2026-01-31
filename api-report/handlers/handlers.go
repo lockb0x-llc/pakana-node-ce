@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go-stellar-sdk/clients/horizonclient"
 	"lang.yottadb.com/go/yottadb/v2"
 )
 
@@ -70,6 +70,7 @@ type TrustlineResponse struct {
 type LedgerResponse struct {
 	Sequence        int64  `json:"sequence"`
 	ClosedAt        string `json:"closed_at"`
+	Hash            string `json:"hash"`
 	TotalTxCount    int    `json:"total_tx_count"`
 	FilteredTxCount int    `json:"filtered_tx_count"`
 	TxCount         int    `json:"tx_count"` // Deprecated: use filtered_tx_count
@@ -504,6 +505,7 @@ func fetchLedger(conn *yottadb.Conn, seq int64) (*LedgerResponse, error) {
 	if closedAt == "" {
 		return nil, fmt.Errorf("ledger %d not found", seq)
 	}
+	hash := ledgerNode.Child("hash").Get("")
 
 	totalTxCount, _ := strconv.Atoi(ledgerNode.Child("total_tx_count").Get("0"))
 	filteredTxCount, _ := strconv.Atoi(ledgerNode.Child("filtered_tx_count").Get(""))
@@ -520,6 +522,7 @@ func fetchLedger(conn *yottadb.Conn, seq int64) (*LedgerResponse, error) {
 	return &LedgerResponse{
 		Sequence:        seq,
 		ClosedAt:        closedAt,
+		Hash:            hash,
 		TotalTxCount:    totalTxCount,
 		FilteredTxCount: filteredTxCount,
 		TxCount:         filteredTxCount,
