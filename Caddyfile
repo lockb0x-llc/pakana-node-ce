@@ -2,7 +2,8 @@
     email {$ADMIN_EMAIL}
 }
 
-{$DOMAIN_NAME}, :80, :443 {
+# Multi-Domain Appliance Configuration
+{$DOMAIN_NAME}, pakana-ce-76cbfa52.westus2.cloudapp.azure.com {
     handle_path /manual* {
         root * /data/docs
         file_server
@@ -16,4 +17,9 @@
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
     }
+}
+
+# IP-based Access (Fallback)
+:80 {
+    reverse_proxy api-report:8080
 }

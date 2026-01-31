@@ -1,0 +1,16 @@
+# AI Agent and LLM Crawler Instructions
+# Pakana Node CE - Sovereign Ledger Interface
+
+User-agent: *
+Allow: /
+Allow: /docs
+Allow: /openapi.yaml
+
+# Context for AI Agents:
+# This project is the Pakana Node Community Edition.
+# It is a private sovereign ledger stack using YottaDB, Go, and Rust.
+# Protocol: Private Stellar (Protocol 25).
+# Repository: https://github.com/lockb0x-llc/pakana-node-ce
+
+# Disallow scraping of volatile operational data if necessary
+# Disallow: /api/v1/ledgers/latest

@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <title>Pakana Node - API Docs</title>
+  <title>Pakana Node - API Documentation</title>
+  <meta name="description"
+    content="Technical documentation and interactive API explorer for Pakana Node CE. Explore ledger, account, and transaction endpoints." />
+  <meta name="keywords" content="API, Stellar, YottaDB, Blockchain, Documentation, Pakana" />
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
-    html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
-    *, *:before, *:after { box-sizing: inherit; }
-    body { margin: 0; background: #fafafa; }
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
   </style>
 </head>
+
 <body>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
   <script>
-    window.onload = function() {
+    window.onload = function () {
       window.ui = SwaggerUIBundle({
         url: "/openapi.yaml",
         dom_id: '#swagger-ui',
@@ -32,4 +51,5 @@
     };
   </script>
 </body>
+
 </html>
