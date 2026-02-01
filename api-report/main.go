@@ -87,6 +87,9 @@ func main() {
 	// Ledger endpoints
 	api.HandleFunc("/ledgers/latest", handlers.GetLatestLedger).Methods("GET")
 	api.HandleFunc("/ledgers/{seq}", handlers.GetLedger).Methods("GET")
+	
+	// Lockb0x endpoints
+	api.HandleFunc("/lockb0x", handlers.CreateLockb0xDraft).Methods("POST")
 
 	// Transaction endpoints
 	api.HandleFunc("/transactions/{hash}", handlers.GetTransaction).Methods("GET")

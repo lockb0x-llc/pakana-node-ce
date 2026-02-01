@@ -12,6 +12,8 @@ interface MetricsOverviewProps {
     ingestionStatus: 'healthy' | 'stalled' | 'unknown';
 }
 
+import { DocumentAnchor } from './DocumentAnchor';
+
 export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ 
     latestLedger, 
     totalVolumeHistory, 
@@ -20,6 +22,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 }) => {
     return (
         <div data-component-id="MetricsOverview" className="flex flex-wrap gap-4 items-stretch">
+            {/* RWA Anchor - Full Width */}
+            <DocumentAnchor className="w-full flex-none" />
+
             <Card 
                 dataId="LatestLedger" 
                 animate 
