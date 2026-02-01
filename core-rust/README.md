@@ -13,7 +13,7 @@ Acts as the **State Processor** for the node, operating directly on the YottaDB 
 
 ## Current State
 
-- **Build Environment**: **Standardized**. Using Rust **1.93.0** (Stable) within a YottaDB r2.03 environment.
+- **Build Environment**: **Standardized**. Using Rust **1.84+** (Stable) within a YottaDB r2.03 environment.
 - **Functionality**: **Active Core Processor**. Polls `^Stellar("latest")`, decodes XDR envelopes using the `stellar-xdr` crate, and applies state transitions to `^Account` (balances and sequence numbers).
 - **YottaDB Integration**: Uses the `yottadb` crate **v2.1.0** for high-performance TP-safe access.
 

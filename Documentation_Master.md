@@ -1,6 +1,7 @@
-Here is the comprehensive documentation suite for the **Pakana Node**, designed to serve as the master blueprint for the project's strategic rollout, technical implementation, and eventual monetization.
+> [!NOTE]
+> This document serves as the **Strategic Roadmap & Pro-Edition Reference**. It outlines future architectural goals and Professional features (like `api-pakana`). For the current Community Edition (CE) implementation, refer to the root `README.md` and service-specific guides.
 
-This content is structured to be dropped directly into your repository.
+Here is the comprehensive documentation suite for the **Pakana Node**, designed to serve as the master blueprint for the project's strategic rollout, technical implementation, and eventual monetization.
 
 ---
 

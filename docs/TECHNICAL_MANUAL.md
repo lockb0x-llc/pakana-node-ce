@@ -26,7 +26,7 @@ The core data flow, known as the "Steel Thread," ensures end-to-end integrity fr
 ### B. core-rust (The Validator)
 -   **Role**: State Transition Engine.
 -   **Language**: Rust 1.75+.
--   **Key Crate**: `stellar-xdr` (Version 24.0.0).
+-   **Key Crate**: `stellar-xdr` (Version 25.0).
 -   **Behavior**:
     -   Runs an async monitoring loop on the `^Stellar` global.
     -   Decodes base64 XDR into strongly, statically typed Rust structs.
