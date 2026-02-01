@@ -27,7 +27,7 @@ The "Steel Thread" is the technical workflow that binds these two layers togethe
 ### Step A: The Real World Anchor (Off-Chain)
 1.  **Creation**: A Construction Firm generates a Lien Waiver (PDF).
 2.  **Hashing**: The Pakana App computes the SHA-256 hash of this PDF.
-3.  **Storage**: The PDF is stored locally on the Pakana Node's secure `/data` volume (or IPFS).
+3.  **Storage**: The PDF is stored on the User's choice of storage, such as IPFS, Google Drive, Onedrive, or the Pakana Node's secure `/data` volume itself. The hash is stored on the Pakana Node's YottaDB database (`^Codex`) as a `^Codex("LienWaiver", <hash>)`.
 
 ### Step B: The Public Signal (On-Chain)
 4.  **Transaction**: The Firm sends a payment (USDC) on Stellar.
@@ -46,8 +46,16 @@ Under the new **Uniform Commercial Code (UCC) Article 12** and **Lockb0x Protoco
 
 The Pakana Node provides this proof:
 1.  **Sovereignty**: YOU run the node. YOU own the keys. YOU control the data.
-2.  **Traceability**: The YottaDB history (`^Stellar`) acts as an immutable local audit log.
+2. a. **Traceability**: The YottaDB history (`^Stellar`) acts as an immutable local audit log.
+2. b. **Proof and Provenance**: The Lockb0x Protocol Codex record and file is proof of the transaction and the associated legal document's control and provenance.
+
 3.  **Enforceability**: The link between the Token and the PDF is not just a database entry; it is cryptographically anchored to the public ledger.
+Data and media storage is handled in accordance with jurisdictional regulations and practices as usual.
+For fully decentralized storage, use IPFS or similar decentralized storage solutions.
+For privacy, use storage services or devices controlled by the PakanNode Owner/Operator.
+
+---
+
 
 ## 5. Summary
 Pakana bridges the gap by acting as a **Sovereign Indexer**. It allows you to operate with the speed of DeFi while maintaining the rich, complex, private data required for legal compliance—all within a hardened appliance you control.
