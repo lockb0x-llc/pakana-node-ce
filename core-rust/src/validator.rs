@@ -166,6 +166,25 @@ pub fn extract_seq_num(envelope: &TransactionEnvelope) -> i64 {
     }
 }
 
+/// Extract the Memo Hash from a transaction envelope if present.
+pub fn extract_memo_hash(envelope: &TransactionEnvelope) -> Option<String> {
+    let memo = match envelope {
+        TransactionEnvelope::Tx(env) => &env.tx.memo,
+        TransactionEnvelope::TxV0(env) => &env.tx.memo,
+        TransactionEnvelope::TxFeeBump(env) => {
+            match &env.tx.inner_tx {
+                stellar_xdr::curr::FeeBumpTransactionInnerTx::Tx(inner) => &inner.tx.memo,
+            }
+        }
+    };
+
+    match memo {
+        Memo::Hash(h) => Some(hex::encode(h.0)),
+        Memo::Return(h) => Some(hex::encode(h.0)), // Treat Return hash similarly for now?
+        _ => None,
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

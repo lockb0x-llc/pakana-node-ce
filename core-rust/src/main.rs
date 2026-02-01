@@ -165,6 +165,24 @@ fn process_ledger_transactions(ctx: &Context, sequence_str: &str) {
                                         Err(e) => warn!("  Error applying balance updates: {:?}", e),
                                     }
                                 }
+
+                                // Lockb0x Logic: Check for Anchor Confirmation
+                                if let Some(memo_hash) = validator::extract_memo_hash(&envelope) {
+                                    let mut draft_key = KeyContext::variable(ctx, "^Codex");
+                                    draft_key.push(b"draft".to_vec());
+                                    draft_key.push(memo_hash.as_bytes().to_vec());
+
+                                    // Check if draft exists by checking for "url" child
+                                    let mut url_check = draft_key.clone();
+                                    url_check.push(b"url".to_vec());
+                                    
+                                    if url_check.get().is_ok() { 
+                                        info!("  🔒 Lockb0x Anchor Detected! Promoting hash: {}", memo_hash);
+                                        if let Err(e) = promote_anchor(ctx, &memo_hash) {
+                                             warn!("Failed to promote anchor: {:?}", e);
+                                        }
+                                    }
+                                }
                             }
                             Err(e) => warn!("  Transaction {} validation failed: {:?}", tx_idx, e),
                         }
@@ -210,5 +228,39 @@ fn update_account_state(ctx: &Context, account_id: &str, seq_num: i64) -> Result
         Ok(yottadb::TransactionStatus::Ok)
     }, "UPDATE_SEQ", &[])?;
     
+    Ok(())
+}
+
+/// Promote a Lockb0x draft to an Active Anchor in YottaDB
+fn promote_anchor(ctx: &Context, hash: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx.tp(|_t_ctx| {
+        let mut draft_key = KeyContext::variable(ctx, "^Codex");
+        draft_key.push(b"draft".to_vec());
+        draft_key.push(hash.as_bytes().to_vec());
+
+        // Read fields
+        let mut url_key = draft_key.clone(); url_key.push(b"url".to_vec());
+        let url = url_key.get().unwrap_or(b"".to_vec());
+        
+        let mut desc_key = draft_key.clone(); desc_key.push(b"description".to_vec());
+        let desc = desc_key.get().unwrap_or(b"".to_vec());
+        
+        let mut prov_key = draft_key.clone(); prov_key.push(b"provider".to_vec());
+        let prov = prov_key.get().unwrap_or(b"".to_vec());
+
+        // Write Active Record: ^Codex(hash)
+        let mut active_key = KeyContext::variable(ctx, "^Codex");
+        active_key.push(hash.as_bytes().to_vec());
+        
+        active_key.clone().child(b"url".to_vec()).set(&url)?;
+        active_key.clone().child(b"description".to_vec()).set(&desc)?;
+        active_key.clone().child(b"provider".to_vec()).set(&prov)?;
+        active_key.clone().child(b"status".to_vec()).set(b"active")?;
+        
+        // Remove Draft
+        draft_key.kill()?;
+
+        Ok(yottadb::TransactionStatus::Ok)
+    }, "PROMOTE_ANCHOR", &[])?;
     Ok(())
 }
