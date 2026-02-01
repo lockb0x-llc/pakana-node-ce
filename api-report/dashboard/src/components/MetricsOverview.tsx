@@ -19,11 +19,11 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     ingestionStatus 
 }) => {
     return (
-        <div data-component-id="MetricsOverview" className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div data-component-id="MetricsOverview" className="flex flex-wrap gap-4 items-stretch">
             <Card 
                 dataId="LatestLedger" 
                 animate 
-                className="relative overflow-hidden group col-span-1"
+                className="relative overflow-hidden group flex-shrink-0 min-w-[200px] flex-1"
                 description="The most recent block closed on the Stellar network. Sequence numbers are used to order and identify ledgers."
             >
                 <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-30 transition-opacity">
@@ -45,7 +45,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             <Card 
                 dataId="TotalTX" 
                 animate 
-                className="animation-delay-100"
+                className="animation-delay-100 flex-shrink-0 min-w-[200px] flex-1"
                 description="Live transaction volume across the entire Stellar Network. High peaks indicate network-wide activity."
             >
                 <div className="flex justify-between items-start mb-2">
@@ -64,7 +64,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             <Card 
                 dataId="InterestTX" 
                 animate 
-                className="animation-delay-150 border-blue-500/30 bg-blue-600/[0.05]"
+                className="animation-delay-150 border-blue-500/30 bg-blue-600/[0.05] flex-shrink-0 min-w-[200px] flex-1"
                 tooltipColor="blue"
                 description="Aggregated transaction volume for specifically tracked Pakana accounts. Neon blue indicates sovereign operations."
             >
@@ -84,7 +84,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             <Card 
                 dataId="ValidatorStatus" 
                 animate 
-                className="animation-delay-200"
+                className="animation-delay-200 flex-shrink-0 min-w-[240px] flex-1"
                 description="Real-time health status of the Pakana Validator services running on the cloud node."
             >
                 <div className="flex justify-between items-start mb-2 sm:mb-4">
@@ -136,7 +136,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             <Card 
                 dataId="DatabaseStatus" 
                 animate 
-                className="animation-delay-300"
+                className="animation-delay-300 flex-shrink-0 min-w-[180px] flex-1"
                 description="Status of the primary YottaDB state store. Persistence is ensured via direct IPC mapping."
             >
                 <div className="flex justify-between items-start mb-2 sm:mb-4">

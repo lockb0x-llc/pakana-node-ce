@@ -43,7 +43,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, color = 'em
     return (
         <div 
             ref={triggerRef}
-            className="relative inline-block w-full h-full"
+            className="relative inline-block h-full"
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
         >
