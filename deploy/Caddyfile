@@ -3,7 +3,7 @@
 }
 
 # Multi-Domain Appliance Configuration
-{$DOMAIN_NAME}, pakana-ce-76cbfa52.westus2.cloudapp.azure.com {
+{$DOMAIN_NAME} {
     tls {
         issuer acme {
             ca {$PAKANA_ACME_CA}
