@@ -8,6 +8,8 @@ Project Pakana is a decentralized infrastructure initiative designed to bridge t
 
 By combining the speed of **YottaDB** (Hierarchical NoSQL), the safety of **Rust**, and the ubiquity of the **Stellar Network**, the Pakana Node creates a **"Meta-Network"**—a private, high-performance logical layer on top of the public blockchain that enforces **UCC Article 12** compliance for digital assets.
 
+> **[Deep Dive: How Pakana Bridges RWA, DeFi, and Compliance](./docs/RWA_BRIDGE_ANALYSIS.md)**
+
 ## 2. The "Appliance-First" Mission
 
 Pakana is built as an **Idempotent Appliance**. Every deployment, update, and migration is automated via `sudo bash ./deploy_pakana.sh`. 
